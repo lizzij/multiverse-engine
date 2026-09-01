@@ -24,7 +24,7 @@ def _complete(prompt: str, timeout: int) -> str:
         model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
         resp = httpx.post(
             f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-            params={"key": os.environ["GEMINI_API_KEY"]},
+            headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"]},
             json={
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {"responseMimeType": "application/json"},
@@ -45,8 +45,12 @@ def _complete(prompt: str, timeout: int) -> str:
         )
         return next(b.text for b in response.content if b.type == "text")
 
+    # Text→JSON only: deny all tools so story text embedded in the prompt
+    # can never induce the headless session to touch the system.
     out = subprocess.run(
-        ["claude", "-p", prompt, "--output-format", "json", "--model", "haiku"],
+        ["claude", "-p", prompt, "--output-format", "json", "--model", "haiku",
+         "--disallowedTools",
+         "Bash Read Write Edit Glob Grep WebFetch WebSearch Agent Task NotebookEdit"],
         capture_output=True, text=True, timeout=timeout, check=True,
     )
     return json.loads(out.stdout)["result"]

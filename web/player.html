@@ -273,10 +273,11 @@ function updatePanel(root){
   let rows = Object.keys(manifest.nodes)
     .filter(id => id===root || id.startsWith(prefix)).sort();
   if (REC) rows = rows.filter(id => id===root || sim.has(id));
+  const esc = t => t.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
   document.getElementById('nodelist').innerHTML = rows.slice(0, 30).map(id => {
     const s = statusOf(id);
     return `<div class="nrow"><span class="dot ${s}"></span>`+
-           `<b>${id}</b> <span>${(manifest.nodes[id].premise||'').slice(0,40)}</span></div>`;
+           `<b>${esc(id)}</b> <span>${esc((manifest.nodes[id].premise||'').slice(0,40))}</span></div>`;
   }).join('');
   for (const id of Object.keys(manifest.nodes)){
     const s = statusOf(id);

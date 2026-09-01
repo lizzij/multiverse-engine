@@ -15,7 +15,18 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 
+ALLOWED_PREFIXES = ("/web/", "/runs/")
+
+
 class Handler(SimpleHTTPRequestHandler):
+    # Serve only the player and run artifacts — never .git or the rest
+    # of the working tree.
+    def send_head(self):
+        if not self.path.startswith(ALLOWED_PREFIXES):
+            self.send_error(404)
+            return None
+        return super().send_head()
+
     def do_POST(self):
         if self.path != "/control":
             self.send_error(404)
