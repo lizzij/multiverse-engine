@@ -69,7 +69,9 @@
   <div id="log"></div>
 </div>
 <script>
-const run = new URLSearchParams(location.search).get('run');
+const params = new URLSearchParams(location.search);
+const run = params.get('run');
+const REC = params.has('rec');   // recording mode: clean HUD, no sound hint
 const MIN_SHOW = 6500;
 const stage = document.getElementById('stage');
 const panesEl = document.getElementById('panes');
@@ -181,7 +183,7 @@ async function tick(){
   if (rootId === null) rootId = manifest.cycles[0].root;
   const shown = Date.now() - levelShownAt;
   hud.textContent = `multiverse · dive ${dives} · ${2**level} realit${level?'ies':'y'}`
-                    + (audioArmed?'':' · click for sound');
+                    + (audioArmed || REC ? '' : ' · click for sound');
   showLevel(rootId, level);
   updatePanel(rootId);
 

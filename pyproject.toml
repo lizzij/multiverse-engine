@@ -19,7 +19,11 @@ dependencies = [
 multiverse = "multiverse.cli:app"
 
 [dependency-groups]
-dev = ["pytest>=8.0", "ruff>=0.5"]
+dev = [
+    "playwright>=1.62.0",
+    "pytest>=8.0",
+    "ruff>=0.5",
+]
 
 [build-system]
 requires = ["hatchling"]
