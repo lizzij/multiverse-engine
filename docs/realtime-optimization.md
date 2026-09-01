@@ -87,6 +87,32 @@ window later — which maps exactly onto the vote-driven X/Twitch loop.
 - 480P for all live panes; 768P only for the slow-lane hero re-renders.
 - Engine resume from tree.json (crash recovery for long streams).
 
+## How the fal queue actually works (and what to exploit)
+
+Lifecycle: `IN_QUEUE` (never dropped; runners auto-scale) →
+`IN_PROGRESS` (log streaming available) → `COMPLETED`. Verified
+mechanics that matter to us:
+
+- **`hint` = session affinity.** Repeat requests route to the same
+  runner, keeping the model + caches warm. This explains our cold 31s
+  vs warm ~20s r2v variance. → Pass a stable per-stream `hint` on every
+  submission; the live lane should never pay a cold runner twice.
+- **`priority: "normal" | "low"`.** Low runs only when the normal queue
+  is empty — server-side enforcement of our two-lane design for free:
+  live-lane scenes at normal, slow-lane identity/hero re-renders at
+  low. They can never delay a fracture.
+- **Completion detection.** `subscribe()` polls; SSE status streaming
+  (or a webhook for hosted deployments) removes polling latency —
+  worth ~1-2s of the I2V overhead budget.
+- **Cancellation is instant for queued items** and signals in-progress
+  runs → cheap sibling-subtree pruning after a dive.
+- **Result URLs (`v3.fal.media`) are public but expire.** Chaining a
+  parent's CDN URL directly as the next input is safe within a cycle;
+  download for persistence (we already do).
+- **Timeouts:** set `start_timeout`/`client_timeout` so a stuck render
+  fails fast into the FAILED→regenerate path instead of stalling a
+  level.
+
 ## Bottom line
 
 r2v (dual video anchors) stays the **quality lane** — launch films,
