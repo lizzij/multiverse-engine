@@ -1,0 +1,180 @@
+{
+  "depth": 3,
+  "branches": 2,
+  "beats": [
+    {
+      "divergence": "the-gap-between-them",
+      "premise": "The words don't land: between mother and daughter, other lives shimmer.",
+      "action": "Joy keeps talking; Evelyn keeps sorting receipts. In the air between them, soft prismatic light blooms and Joy flickers gently through other versions of herself — a small girl, a teenager, a glittering extravagant figure — each for half a second. Evelyn's hands slow. She finally looks up and meets her daughter's eyes.",
+      "ending_pose": "mother and daughter finally facing each other across the counter, held",
+      "visible_consequences": [
+        "Joy flickering through ages and looks in soft prismatic light",
+        "Evelyn's hands stopped mid-sort over the receipts",
+        "steam drifting through warm morning light"
+      ],
+      "children": [
+        {
+          "divergence": "little-joy",
+          "premise": "The life they already lived: when Joy was small.",
+          "action": "The laundromat warms into years earlier: the same aisle, older machines, and Joy is six years old, dancing between the washers in socks while a younger Evelyn laughs and abandons her folding to catch her. Sunlight through the front window, dust motes glowing.",
+          "ending_pose": "young Evelyn kneeling, holding little Joy's hands, both laughing, held",
+          "visible_consequences": [
+            "Joy as a six-year-old dancing in socks",
+            "a younger, lighter Evelyn laughing freely",
+            "sunlit dust motes over the old machines"
+          ],
+          "children": [
+            {
+              "divergence": "piggyback",
+              "premise": "A perfect ordinary afternoon.",
+              "action": "Evelyn spins slowly with little Joy on her back down the aisle while white sheets billow from an open dryer around them like clouds; both are laughing, Joy's arms spread out like wings.",
+              "ending_pose": "frozen mid-spin among the billowing white sheets, both laughing, held",
+              "visible_consequences": [
+                "white sheets billowing like clouds around them",
+                "little Joy's arms spread wide like wings",
+                "warm golden afternoon light"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "growing-up",
+              "premise": "All the Joys at once.",
+              "action": "Down the laundromat aisle, Joy appears at several ages at once — the six-year-old, a ten-year-old with a backpack, a teenager with headphones, and today's Joy in her denim jacket — each standing calmly at a machine, all turning at the same moment to look at Evelyn at the counter.",
+              "ending_pose": "adult Joy at the end of the aisle looking back at her mother, the younger Joys soft in the foreground, held",
+              "visible_consequences": [
+                "four ages of Joy standing along one aisle",
+                "all of them turning toward Evelyn together",
+                "warm fluorescents and tumbling color in the dryers"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "divergence": "movie-star-alley",
+          "premise": "The life where they never met — and still find each other.",
+          "action": "The shimmer resolves into a rain-washed neon alley behind a premiere. Evelyn, glamorous in a sequined gown and updo, steps out of the stage door — and stops. Across the alley, sheltering from the rain, stands Joy with a camera on a strap, a stranger in this life. They look at each other a beat too long, as if remembering something.",
+          "ending_pose": "the two of them across the neon-lit alley, held in mutual almost-recognition",
+          "visible_consequences": [
+            "Evelyn transformed: sequined gown, elegant updo",
+            "Joy as a young photographer sheltering from the rain",
+            "pink and blue neon rippling in the puddles"
+          ],
+          "children": [
+            {
+              "divergence": "teppanyaki-family",
+              "premise": "The life at the grill, where dinner is a show.",
+              "action": "A bright teppanyaki restaurant: Evelyn is the chef, spatulas flashing, flipping an egg high; Joy sits at the counter laughing with her hands up. Behind Evelyn a rival chef's tall hat tilts and a raccoon's face peeks out; Joy sees it and points, delighted.",
+              "ending_pose": "the egg suspended above the grill, Joy pointing at the raccoon in delight, held",
+              "visible_consequences": [
+                "an egg suspended mid-air over the flaming grill",
+                "a raccoon peeking from under the rival chef's hat",
+                "Joy laughing at the counter, pointing"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "opera-duet",
+              "premise": "The life on the stage — and the daughter in the wings.",
+              "action": "A Peking-opera stage: Evelyn in embroidered regalia and painted face sweeps her water sleeves through a phrase. In the wings, Joy in stagehand black mouths every word along with her, hands tracing the same gesture small. Evelyn's eyes find her mid-pose.",
+              "ending_pose": "Evelyn holding the opera pose, eyes on Joy in the wings, Joy mid-gesture, held",
+              "visible_consequences": [
+                "full opera regalia and painted face under footlights",
+                "Joy in the wings mirroring the gesture in miniature",
+                "white water sleeves mid-sweep"
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "divergence": "jobu-arrives",
+      "premise": "Joy stops holding it in: the everything daughter appears.",
+      "action": "Joy exhales, and the laundromat blooms with confetti-colored light. Her hoodie and denim ripple into a playful, extravagant Jobu outfit — glitter face paint, a rhinestone collar, a pom-pom crown — theatrical and weary, not menacing. She spreads her arms as laundry swirls gently around her like a slow carousel. Evelyn sets down the receipts.",
+      "ending_pose": "Joy as Jobu, arms spread amid gently orbiting laundry, Evelyn facing her, held",
+      "visible_consequences": [
+        "Joy transformed into a glittering, playful Jobu outfit",
+        "laundry orbiting slowly like a carousel",
+        "confetti-colored light through the laundromat"
+      ],
+      "children": [
+        {
+          "divergence": "the-bagel-is-sadness",
+          "premise": "She shows her mother the bagel — not a threat, a confession.",
+          "action": "Above the folding table, Joy conjures the everything bagel, rotating slowly, sesame seeds catching the warm light. The color drains a little from the room. Over the top of the bagel, Joy's glitter-painted face is just tired and sad. Her voice is small: this is where I put everything. Evelyn steps closer instead of away.",
+          "ending_pose": "the bagel hovering between them, Evelyn one step closer, Joy's tired eyes over its rim, held",
+          "visible_consequences": [
+            "the everything bagel rotating slowly over the folding table",
+            "Joy's sad eyes above the bagel's rim",
+            "Evelyn stepping toward it, not away"
+          ],
+          "children": [
+            {
+              "divergence": "rocks-mother-daughter",
+              "premise": "The universe where life never happened. They still found each other.",
+              "action": "Gentle silence. A sun-baked canyon rim: two boulders side by side above the vast golden canyon — the Evelyn-rock and the Joy-rock, each with googly eyes. Wind moves the dust. White subtitles appear in turn: 'you okay?' … 'yeah. it's quiet here.'",
+              "ending_pose": "the two googly-eyed rocks side by side over the canyon, wind only, held",
+              "visible_consequences": [
+                "two googly-eyed boulders on the canyon rim",
+                "vast golden canyon under soft sunlight",
+                "white subtitle dialogue on the quiet frame"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "rocks-scoot-together",
+              "premise": "Even here, she follows her daughter.",
+              "action": "The Joy-rock scoots toward the cliff edge with a soft gravelly scrape. A beat. The Evelyn-rock scoots after her, closing the gap, dust puffing. Subtitle: 'wherever you go, I go.' The two rocks sit at the rim together, googly eyes on the horizon.",
+              "ending_pose": "both rocks together at the very rim, googly eyes on the horizon, held",
+              "visible_consequences": [
+                "scoot trails in the dust behind both rocks",
+                "the rocks touching side by side at the rim",
+                "the subtitle line on the frame"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "divergence": "laundromat-hug",
+          "premise": "Evelyn chooses her daughter over every other universe.",
+          "action": "The confetti light settles like dust. Joy's Jobu regalia dissolves back into her denim jacket and hoodie; she stands exhausted among the machines. Evelyn crosses the aisle without a word and pulls her into a hug. Joy stiffens, then folds into it. The googly eye on the washer watches over them.",
+          "ending_pose": "mother and daughter in a full hug among the machines, held",
+          "visible_consequences": [
+            "Jobu's outfit dissolving back into denim and hoodie",
+            "a long unguarded hug in the aisle",
+            "the googly eye on the washer behind them"
+          ],
+          "children": [
+            {
+              "divergence": "parking-lot",
+              "premise": "The golden-hour talk behind the laundromat.",
+              "action": "Golden hour in the little parking lot out back. Evelyn holds Joy's face in both hands, thumbs at her cheeks, and says something that makes Joy laugh and cry at once. Their foreheads come together. Laundry steam drifts past in the low sun.",
+              "ending_pose": "forehead to forehead in the golden light, both smiling through tears, held",
+              "visible_consequences": [
+                "golden-hour light in the back parking lot",
+                "Evelyn's hands holding Joy's face",
+                "steam drifting through the low sun"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "laundry-and-taxes",
+              "premise": "The universe they choose: this one, together.",
+              "action": "Back inside, ordinary peace: Evelyn and Joy fold sheets together across the table, finding a rhythm — corners together, fold, smooth. A small stack of sorted receipts sits finished by the register. They exchange one small smile without stopping.",
+              "ending_pose": "the two folding in sync over the table, small smiles, held",
+              "visible_consequences": [
+                "sheets folded corner-to-corner in shared rhythm",
+                "the finished stack of receipts by the register",
+                "warm ordinary laundromat light"
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
