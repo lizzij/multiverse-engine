@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+
+# Secrets — never commit credentials
+.env
+.env.*
+*.key
+
+# Generated media / runs (large, reproducible)
+runs/
+exports/
+*.mp4
+*.mov
+*.webm
+
+# Allow small committed example/demo assets explicitly
+!examples/*.mp4
+!assets/*.gif
+
+# OS
+.DS_Store
