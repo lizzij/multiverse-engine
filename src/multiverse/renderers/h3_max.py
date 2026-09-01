@@ -52,6 +52,7 @@ class H3MaxRenderer:
 
 TEXT_TO_VIDEO_ENDPOINT = "minimax/h3-max/text-to-video"
 REFERENCE_TO_VIDEO_ENDPOINT = "minimax/h3-max/reference-to-video"
+IMAGE_TO_VIDEO_ENDPOINT = "minimax/h3-max/image-to-video"
 
 _RESOLUTIONS = {"480p": "480P", "768p": "768P"}
 _ASPECTS = ("21:9", "16:9", "4:3", "1:1", "3:4", "9:16")
@@ -148,26 +149,82 @@ def render_reference(
     }
 
 
+def render_i2v(
+    start_image_url: str,
+    prompt: str,
+    out_path: Path,
+    duration: int = 5,
+    resolution: str = "480p",
+    end_image_url: str | None = None,
+    seed: int | None = None,
+    hint: str | None = None,
+) -> dict:
+    """Live-lane render: continuation conditioned on the parent's final frame.
+
+    ~4s end-to-end at 480p (no reference-video tokenization). `hint` keeps
+    requests on the same warm fal runner across a stream.
+    """
+    if resolution.lower() not in _RESOLUTIONS:
+        raise ValueError(f"resolution must be one of {sorted(_RESOLUTIONS)}")
+    payload: dict = {
+        "prompt": prompt,
+        "image_url": start_image_url,
+        "duration": duration,
+        "resolution": _RESOLUTIONS[resolution.lower()],
+        "prompt_expansion_mode": "balanced",
+    }
+    if end_image_url:
+        payload["end_image_url"] = end_image_url
+    if seed is not None:
+        payload["seed"] = seed
+    result = _subscribe_with_retry(IMAGE_TO_VIDEO_ENDPOINT, payload, hint=hint)
+    _download(result["video"]["url"], out_path)
+    return {
+        "output_path": str(out_path),
+        "endpoint": IMAGE_TO_VIDEO_ENDPOINT,
+        "expanded_prompt": result.get("expanded_prompt"),
+        "requested": payload,
+        "file_size_bytes": out_path.stat().st_size,
+    }
+
+
 def _require_key() -> None:
     if not os.environ.get("FAL_KEY"):
         raise RuntimeError("H3 Max requires fal.ai — set FAL_KEY (see README: BYOK)")
 
 
-def _subscribe_with_retry(endpoint: str, payload: dict, attempts: int = 8, delay: float = 5.0) -> dict:
+def _subscribe_with_retry(
+    endpoint: str,
+    payload: dict,
+    attempts: int = 8,
+    delay: float = 5.0,
+    hint: str | None = None,
+    priority: str | None = None,
+) -> dict:
     """Submit and wait, retrying only the fal account-lock flap (fal-ai/fal#922).
 
     Other errors (validation, safety checker, real exhausted balance after
-    all retries) propagate immediately.
+    all retries) propagate immediately. `hint` requests runner session
+    affinity; `priority` ("low") yields to normal-priority live work —
+    both dropped gracefully if the installed fal client predates them.
     """
     import time
 
     import fal_client
 
     _require_key()
+    extra: dict = {}
+    if hint:
+        extra["hint"] = hint
+    if priority:
+        extra["priority"] = priority
     last_exc: Exception | None = None
     for _ in range(attempts):
         try:
-            return fal_client.subscribe(endpoint, arguments=payload)
+            try:
+                return fal_client.subscribe(endpoint, arguments=payload, **extra)
+            except TypeError:
+                return fal_client.subscribe(endpoint, arguments=payload)
         except Exception as exc:
             if "User is locked" not in str(exc):
                 raise

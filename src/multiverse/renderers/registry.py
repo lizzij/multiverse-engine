@@ -25,9 +25,11 @@ def available() -> list[str]:
 
 
 def _register_builtins() -> None:
+    from multiverse.renderers.h3_local import H3LocalRenderer
     from multiverse.renderers.h3_max import H3MaxRenderer
 
     register("h3-max", H3MaxRenderer)
+    register("h3-local", H3LocalRenderer)
 
 
 _register_builtins()

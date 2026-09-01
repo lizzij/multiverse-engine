@@ -50,6 +50,74 @@ def _ancestry_text(ancestry: list[Universe]) -> str:
     return "\n".join(lines)
 
 
+TREE_PROMPT = """\
+You are the story planner for a branching parallel-reality video engine.
+
+THE SOURCE SCENE (identity canon for all realities):
+{scene_summary}
+
+THE TIMELINE SO FAR (each scene continues the previous one):
+{ancestry}
+
+Plan a complete BINARY TREE of story continuations, {depth} levels deep
+(so {n_total} scenes total). Rules:
+- The tree root's 2 children each continue the last scene above from its
+  ending pose ({parent_ending}), forking in two genuinely different
+  directions (world, choices, new elements, or physics may change).
+- Every scene's own children continue THAT scene from ITS ending_pose,
+  forking again. Siblings must be high-contrast with each other.
+- Each scene is ~5 seconds: ONE clear action beat, concrete and filmable.
+- Every scene ENDS on a held, stable pose (a "fracture point").
+- Keep the two main characters present and recognizable throughout.
+
+Respond with ONLY a JSON array of 2 scene objects (no prose), each:
+  "divergence": short slug for what forks
+  "premise": one-sentence premise of this reality
+  "action": 1-3 sentences of what visibly happens
+  "ending_pose": the held final tableau, one sentence
+  "visible_consequences": list of 2-3 concrete visual details
+  "children": array of 2 scene objects of the same shape (empty array at
+  the deepest level)
+"""
+
+REQUIRED = {"divergence", "premise", "action", "ending_pose", "visible_consequences"}
+
+
+def _validate_tree(beats: list[dict], depth: int) -> None:
+    if len(beats) < 2:
+        raise ValueError(f"expected 2 beats per node, got {len(beats)}")
+    for b in beats[:2]:
+        if not REQUIRED <= set(b):
+            raise ValueError(f"beat missing keys: {sorted(REQUIRED - set(b))}")
+        if depth > 1:
+            _validate_tree(b.get("children", []), depth - 1)
+
+
+def plan_tree(
+    ancestry: list[Universe], scene_summary: str, depth: int = 3, timeout: int = 300
+) -> list[dict]:
+    """Plan a full cycle's storyboard (binary beat tree) in one call."""
+    parent = ancestry[-1]
+    prompt = TREE_PROMPT.format(
+        scene_summary=scene_summary,
+        ancestry=_ancestry_text(ancestry),
+        depth=depth,
+        n_total=2 ** (depth + 1) - 2,
+        parent_ending=parent.world_state.get("ending_pose", "as the scene ends"),
+    )
+    out = subprocess.run(
+        ["claude", "-p", prompt, "--output-format", "json", "--model", "haiku"],
+        capture_output=True, text=True, timeout=timeout, check=True,
+    )
+    text = json.loads(out.stdout)["result"]
+    start, end = text.find("["), text.rfind("]")
+    if start < 0 or end < 0:
+        raise ValueError(f"planner returned no JSON array: {text[:200]}")
+    beats = json.loads(text[start : end + 1])
+    _validate_tree(beats, depth)
+    return beats[:2]
+
+
 def plan_beats(
     ancestry: list[Universe], scene_summary: str, n: int = 4, timeout: int = 240
 ) -> list[dict]:

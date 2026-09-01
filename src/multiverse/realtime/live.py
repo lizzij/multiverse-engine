@@ -24,15 +24,13 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from multiverse.media import downscale, extract_last_frame, extract_tail
-from multiverse.realtime.planner import plan_beats
+from multiverse.media import downscale, extract_anchor_frame
+from multiverse.realtime.planner import plan_tree
 from multiverse.realtime.scheduler import RenderPool
-from multiverse.renderers.h3_max import render_reference, upload_media
-from multiverse.scene.prompts import compile_continuation_prompt
+from multiverse.renderers.h3_max import render_i2v, render_reference, upload_media
+from multiverse.scene.prompts import compile_i2v_prompt
 from multiverse.schemas import NodeStatus, Universe
 from multiverse.worlds.tree import UniverseTree
-
-TAIL_SECONDS = 2.0
 
 
 class LiveEngine:
@@ -56,6 +54,7 @@ class LiveEngine:
         self.duration = duration
         self.resolution = resolution
         self.pool = RenderPool(concurrency)
+        self.hint = run_dir.name  # fal runner session affinity for the stream
         self.tree = UniverseTree.new()
         self.cycle_log: list[dict] = []
         self.t0 = time.monotonic()
@@ -114,6 +113,8 @@ class LiveEngine:
             entry["dive_to"] = chosen.id
             self._write_state()
             self._log(f"◎ dive -> [{chosen.id}] {chosen.premise[:60]}")
+            if cycle + 1 < self.cycles:
+                await self._identity_refresh(chosen)
             root_id = chosen.id
         self._log(
             f"done: {self.pool.completed} renders ok, {self.pool.failed} failed"
@@ -121,19 +122,25 @@ class LiveEngine:
 
     async def expand_cycle(self, root_id: str) -> list[Universe]:
         leaves: list[Universe] = []
+        root = self.tree.nodes[root_id]
+        # Storyboard-ahead: the whole cycle's beat tree in one planner call,
+        # hidden behind the root's fullscreen playback. Zero planning
+        # latency during the cycle.
+        self._log(f"storyboarding cycle of [{root_id}] ...")
+        cycle_beats = await asyncio.to_thread(
+            plan_tree, self.tree.ancestry(root_id), self.scene_summary, self.depth
+        )
+        self._log("storyboard ready")
 
-        async def expand(node: Universe, d: int, beats_task: asyncio.Task | None) -> None:
+        async def expand(node: Universe, d: int, beats: list[dict]) -> None:
             if d >= self.depth:
                 leaves.append(node)
                 return
-            beats = await (beats_task or self._plan(node))
-            parent_clip = Path(node.render_path)
-            tail = extract_tail(parent_clip, TAIL_SECONDS, self.run_dir / "anchors" / f"{node.id}_tail.mp4")
-            frame = extract_last_frame(parent_clip, self.run_dir / "anchors" / f"{node.id}_last.png")
-            tail_url, frame_url = await asyncio.gather(
-                asyncio.to_thread(upload_media, tail),
-                asyncio.to_thread(upload_media, frame),
+            # Freeze-safe anchor: never anchor children on a stalled tail.
+            frame = extract_anchor_frame(
+                Path(node.render_path), self.run_dir / "anchors" / f"{node.id}_last.png"
             )
+            frame_url = await asyncio.to_thread(upload_media, frame)
 
             async def render_child(beat: dict) -> None:
                 child = self.tree.add_child(
@@ -145,48 +152,64 @@ class LiveEngine:
                 )
                 child.status = NodeStatus.RENDERING
                 self._write_state()
-                # Plan-ahead: the grandchildren's beats need only this
-                # child's semantics, so planning overlaps its render.
-                grand_task = self._plan(child) if d + 1 < self.depth else None
-                prompt = compile_continuation_prompt(
-                    beat["action"], beat["premise"], beat["ending_pose"],
-                    beat["visible_consequences"],
+                prompt = compile_i2v_prompt(
+                    self.scene_summary, beat["action"], beat["premise"],
+                    beat["ending_pose"], beat["visible_consequences"],
                 )
                 out = self.run_dir / "renders" / f"{child.id}.mp4"
                 self._log(f"→ submit [{child.id}] {beat['divergence']}")
                 try:
-                    _, took = await self.pool.run(lambda: render_reference(
-                        [self.identity_url, tail_url], prompt, out,
+                    _, took = await self.pool.run(lambda: render_i2v(
+                        frame_url, prompt, out,
                         duration=self.duration, resolution=self.resolution,
-                        aspect_ratio="16:9", seed=42, image_urls=[frame_url],
+                        seed=42, hint=self.hint,
                     ))
                 except Exception as exc:
                     child.status = NodeStatus.FAILED
                     self._write_state()
                     self._log(f"✗ [{child.id}] failed: {exc}")
-                    if grand_task:
-                        grand_task.cancel()
                     return
                 child.render_path = str(out)
                 child.status = NodeStatus.READY
                 self._write_state()
                 self._log(f"✓ [{child.id}] ready ({took:.0f}s)")
                 # Eager: descend the moment this child's pixels exist.
-                await expand(child, d + 1, grand_task)
+                await expand(child, d + 1, beat.get("children", []))
 
             await asyncio.gather(*(render_child(b) for b in beats[: self.branches]))
 
-        root = self.tree.nodes[root_id]
-        await expand(root, 0, None)
+        await expand(root, 0, cycle_beats)
         return leaves
 
-    def _plan(self, node: Universe) -> asyncio.Task:
-        async def _run():
-            return await asyncio.to_thread(
-                plan_beats, self.tree.ancestry(node.id), self.scene_summary, self.branches
-            )
-        return asyncio.create_task(_run())
-
+    async def _identity_refresh(self, leaf: Universe) -> None:
+        """Slow lane: re-render the dive target against the seed identity
+        anchor (r2v, low priority) before its children anchor on it, so
+        drift resets at every cycle boundary. Hidden behind the root's
+        fullscreen playback."""
+        parent = self.tree.nodes[leaf.parent_id]
+        frame = extract_anchor_frame(
+            Path(parent.render_path), self.run_dir / "anchors" / f"{leaf.id}_refresh_src.png"
+        )
+        frame_url = await asyncio.to_thread(upload_media, frame)
+        prompt = (
+            "Video 1 is the canonical identity and art-style reference for "
+            "the characters. Image 1 is the exact first frame; begin there "
+            "and keep the characters exactly recognizable as in Video 1.\n\n"
+            f"What happens: {leaf.world_state.get('action', leaf.premise)}\n\n"
+            "Single continuous take. No cuts. "
+            f"End the scene holding this pose: {leaf.world_state.get('ending_pose', 'a held tableau')}"
+        )
+        out = self.run_dir / "renders" / f"{leaf.id}.mp4"
+        self._log(f"↺ identity refresh [{leaf.id}] (r2v, low priority)")
+        try:
+            _, took = await self.pool.run(lambda: render_reference(
+                [self.identity_url], prompt, out,
+                duration=self.duration, resolution=self.resolution,
+                aspect_ratio="16:9", seed=42, image_urls=[frame_url],
+            ), priority=2)
+            self._log(f"↺ refreshed [{leaf.id}] ({took:.0f}s)")
+        except Exception as exc:
+            self._log(f"↺ refresh failed, keeping I2V render: {exc}")
 
 def run_live(seed_path: Path, run_dir: Path, scene_summary: str, **kwargs) -> None:
     asyncio.run(LiveEngine(seed_path, run_dir, scene_summary, **kwargs).run())

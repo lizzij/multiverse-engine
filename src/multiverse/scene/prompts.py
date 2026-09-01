@@ -77,3 +77,39 @@ def compile_continuation_prompt(
     return CONTINUATION_TEMPLATE.format(
         action=action, premise=premise, ending_pose=ending_pose, consequences=consequences
     )
+
+
+# I2V live lane: no reference media — the start frame IS the continuity
+# anchor, so identity/style must be carried in text.
+I2V_CONTINUATION_TEMPLATE = """\
+{style}
+
+This scene begins at the exact moment shown in the provided first frame
+and continues the ongoing story seamlessly from it. Do not reset or
+reinterpret the situation.
+
+What happens next:
+
+{action}
+
+This reality's premise:
+
+{premise}
+
+Visible consequences:
+
+{consequences}
+
+Single continuous take. No cuts. No alternate camera angle.
+End the scene holding this pose: {ending_pose}
+"""
+
+
+def compile_i2v_prompt(
+    style: str, action: str, premise: str, ending_pose: str, visible_consequences: list[str]
+) -> str:
+    consequences = "\n".join(f"- {c}" for c in visible_consequences) or "- (none listed)"
+    return I2V_CONTINUATION_TEMPLATE.format(
+        style=style, action=action, premise=premise,
+        ending_pose=ending_pose, consequences=consequences,
+    )
