@@ -1,0 +1,180 @@
+{
+  "depth": 3,
+  "branches": 2,
+  "beats": [
+    {
+      "divergence": "temporal-expansion",
+      "premise": "The green crystals multiply and intensify, spinning the room into a vortex.",
+      "action": "The scientist grabs the boy's shoulder as green crystals float upward in an accelerating spiral. Walls blur and rotate. Books, furniture, and the potted plant lift off the ground and orbit around them in rings. The air crackles with static.",
+      "ending_pose": "Scientist and boy pressed against the back wall, arms raised to shield their faces as the room spins at dizzying speed.",
+      "visible_consequences": [
+        "Furniture orbiting in circular patterns",
+        "Boy's yellow shirt flapping violently in the wind",
+        "Green crystals pulsing brighter with each rotation"
+      ],
+      "children": [
+        {
+          "divergence": "external-intrusion",
+          "premise": "The front door SLAMS open, revealing a mysterious figure fighting through the vortex.",
+          "action": "A silhouetted figure in a dark coat staggers through the violently rotating doorframe, struggling against the green vortex. The scientist's eyes widen\u2014recognition or shock. The figure fights closer, their coat whipping around them.",
+          "ending_pose": "Mysterious hooded figure standing in the doorway, silhouetted against the chaos, one arm extended directly toward the scientist.",
+          "visible_consequences": [
+            "Dark figure backlit by green storm",
+            "Scientist's expression shifting to recognition",
+            "Vortex tearing at the intruder's coat"
+          ],
+          "children": [
+            {
+              "divergence": "ally-rescue",
+              "premise": "The figure reveals themselves as an older, scarred version of the scientist\u2014a future self with a solution.",
+              "action": "The figure pulls back their hood. It's the scientist, but older\u2014weathered, scarred. Future-scientist hurls a red crystalline device into the vortex. It arcs through the green chaos and pulls toward the green crystals like a magnet, the two energies beginning to destabilize each other.",
+              "ending_pose": "Two versions of the scientist staring at each other across the spinning room, red and green light colliding between them.",
+              "visible_consequences": [
+                "Red crystal contrasting with green vortex",
+                "Older scientist visibly scarred and worn",
+                "Vortex flickering and fragmenting"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "enemy-arrival",
+              "premise": "The intruder is an old adversary, and they've come to settle a score during the chaos.",
+              "action": "The figure pulls back their hood and raises an ornate staff crackling with BLUE electricity. They slam it forward. Blue and green energies COLLIDE violently in mid-air, causing the entire room to convulse. The boy shouts something inaudible over the deafening crackle. The scientist's face hardens\u2014he knows this enemy.",
+              "ending_pose": "Boy clinging to scientist as blue lightning streaks toward them, the vortex warping and twisting around the energy collision.",
+              "visible_consequences": [
+                "Staff crackling with intense blue arcs",
+                "Blue and green energies warring visibly",
+                "Raw fear distorting the boy's features"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "divergence": "device-discovery",
+          "premise": "A buried control device erupts from beneath the floor\u2014the source of the original experiment.",
+          "action": "A metallic control panel, veined with glowing green conduits, BREAKS through the floorboards beneath the sofa and rises slowly into the spinning room. The scientist's face transforms\u2014realization, longing, dread. He pushes away from the wall toward it. The boy grabs his lab coat, trying to hold him back.",
+          "ending_pose": "Scientist suspended mid-reach toward the rising device, boy pulling desperately on his coat, both frozen between physics and choice.",
+          "visible_consequences": [
+            "Ornate panel with glowing green circuitry",
+            "Floorboards cracked and splintered upward",
+            "Conflicting emotions visible on scientist's face"
+          ],
+          "children": [
+            {
+              "divergence": "scientist-activates",
+              "premise": "The scientist breaks free and slams a red button on the device, gambling everything on one desperate gambit.",
+              "action": "The boy's grip slips. The scientist surges forward and SLAMS his palm onto the largest red button. The device SCREAMS\u2014a high-pitched electronic wail that cuts through the vortex sound. All green crystals pulse in sync and begin collapsing rapidly inward toward a single point of light.",
+              "ending_pose": "Scientist blown backward into the boy's arms by the force, both tumbling together as green light condenses into an intense, compact sphere.",
+              "visible_consequences": [
+                "Red button crushed inward",
+                "Green light collapsing into a singular sphere",
+                "Both characters joined together by the shockwave"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "boy-intervenes",
+              "premise": "The boy, instinct overwhelming fear, smashes the device with debris, derailing the scientist's plan.",
+              "action": "The boy refuses to let go. Instead, he grabs a heavy brass lamp from the orbiting debris and HURLS it at the device. Metal connects with a SHOWER OF SPARKS. The scientist's face goes white\u2014not with anger, but horror at the interruption. The vortex STUTTERS and inverts, now IMPLODING rather than expanding.",
+              "ending_pose": "Boy and scientist tumbling toward the center of the implosion, the device smoking and short-circuiting, green light pulling everything inward.",
+              "visible_consequences": [
+                "Lamp crumpled and glowing from impact",
+                "Device sparking and arcing wildly",
+                "Vortex suddenly reversing direction"
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "divergence": "temporal-collapse",
+      "premise": "The green crystals shrivel, but the time distortion doesn't stabilize\u2014it reverses, pulling everything backward into the past.",
+      "action": "The green glow dims abruptly to a sickly twilight. The vortex slows and STOPS. Then the boy realizes with creeping dread\u2014everything is moving BACKWARD. Floating debris reverses trajectory. A shattered coffee cup reforms itself. The scientist's voice plays backward, an unintelligible ghost-sound. Time is rewinding.",
+      "ending_pose": "Both characters standing motionless in the now-quiet room, watching debris drift backward around them, dawning horror on their faces.",
+      "visible_consequences": [
+        "Time-reversal effect on all objects",
+        "Broken things visibly reassembling",
+        "Green crystals shrinking but still present"
+      ],
+      "children": [
+        {
+          "divergence": "past-echo",
+          "premise": "The room rewinds to show a younger scientist performing the original experiment\u2014the moment before it failed.",
+          "action": "The scene fades ghostly. A younger scientist appears, hands trembling as he sets up the experiment. A younger boy\u2014maybe 10 years old\u2014watches from the doorway, curious and innocent. Present-day scientist and boy watch helplessly as past-scientist makes THE MISTAKE: he connects a wire incorrectly. The present scientist's face crumbles with the horrible realization that he caused this catastrophe decades ago.",
+          "ending_pose": "Present-day boy staring at his younger self in the vision; present-day scientist's face frozen as the source of the disaster becomes brutally clear.",
+          "visible_consequences": [
+            "Semi-transparent ghostly figures overlaid on the room",
+            "Incorrect wire connection highlighted clearly",
+            "Visible age difference between past and present versions"
+          ],
+          "children": [
+            {
+              "divergence": "temporal-paradox",
+              "premise": "The scientist lunges into the past vision to fix the wire, creating a dangerous paradox between two timelines.",
+              "action": "The scientist reaches forward and his HAND ENTERS the ghostly image. His fingers touch the wire. It CONNECTS correctly. But immediately, past-scientist looks UP, directly meeting present-scientist's eyes\u2014awareness dawning. A SPLITTING SOUND echoes. The room DOUBLES. Two overlapping visions of the same space exist simultaneously, past and present merging, green light fragmenting erratically between them.",
+              "ending_pose": "Scientist frozen mid-reach between two realities, boy backing away in horror, the room split and doubled around them.",
+              "visible_consequences": [
+                "Hand extended into ghostly realm",
+                "Room duplicated with overlapping images",
+                "Green light becoming chaotic and fragmented"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "accept-history",
+              "premise": "Realizing the past is unchangeable, the scientist pulls the boy close and they accept what comes next.",
+              "action": "The scientist grabs the boy and pulls him AWAY from the vision, whispering something urgent and quiet into his ear. They turn their backs to the ghostly scene. Behind them, they hear the experiment OVERLOAD\u2014the exact sound that created the present disaster. Past and present collapse into one moment. The green light behind them surges toward blinding intensity.",
+              "ending_pose": "Both characters' backs to the vision, braced together shoulder-to-shoulder, as the green light reaches a catastrophic peak behind them.",
+              "visible_consequences": [
+                "Both turned away, accepting fate",
+                "Green light intensifying to white-hot",
+                "Ghost image fading as disaster repeats"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "divergence": "future-skip",
+          "premise": "Time skips forward instead of backward, and the room settles into a radically transformed state.",
+          "action": "The green glow pulses once, then stops dead. The boy blinks. The room is WRONG. Damage patterns don't match. Objects rest in unfamiliar positions. Walls bear cracks that weren't there moments ago. The scientist turns slowly, disoriented. Hours? Days? His expression asks. They've lost time, and the disaster is somehow already over.",
+          "ending_pose": "Scientist and boy standing in the transformed, partially damaged room, mutual disorientation and dread spreading across both faces.",
+          "visible_consequences": [
+            "Room architecture subtly rearranged",
+            "New cracks in walls and ceiling",
+            "Objects settled in unnatural configurations"
+          ],
+          "children": [
+            {
+              "divergence": "unexpected-survivor",
+              "premise": "An unfamiliar animal emerges from the transformed room\u2014proof that time has genuinely skipped forward.",
+              "action": "The boy notices movement. An ORANGE TABBY CAT emerges calmly from under the overturned sofa\u2014not theirs, utterly unfamiliar. The scientist's face goes pale. 'That cat wasn't here,' the boy whispers. The scientist kneels, studying it. Around its neck: a collar with a DATE. Tomorrow's date. The weight of temporal displacement crashes down on them.",
+              "ending_pose": "Scientist, boy, and cat staring at each other in a frozen triangle, the full horror of lost time made tangible.",
+              "visible_consequences": [
+                "Orange tabby with luminous collar",
+                "Date on collar clearly visible as future",
+                "Scientist's face twisted in shock"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "evidence-erasure",
+              "premise": "The time skip has erased all evidence of the experiment, leaving only paranoid confusion and vanished traces.",
+              "action": "The scientist frantically searches the spot where the control device was. GONE. No scorch marks, no traces, nothing. The boy finds his phone on the coffee table. The timestamp: 6 hours have passed. But his last memory is from 30 seconds ago. The scientist grabs the phone, hands shaking. 'Did anyone see this? Did anyone come by?' Paranoia creeping into his voice, eyes darting to the windows and door.",
+              "ending_pose": "Scientist holding the phone with trembling hands, boy glancing toward the windows and door, creeping dread that someone\u2014or something\u2014might be watching them.",
+              "visible_consequences": [
+                "Device vanished without a trace",
+                "Phone displaying 6-hour time gap",
+                "Both characters' pupils dilated with fear"
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

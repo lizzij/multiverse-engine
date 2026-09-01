@@ -1,16 +1,62 @@
-"""LLM beat planner via headless `claude -p` (docs/realtime-branching.md §3).
+"""LLM beat planner (docs/realtime-branching.md §3).
 
-Reuses the user's existing local Claude auth — no separate API key.
-Planning is cheap and fast relative to rendering, so it runs ahead of
-the render frontier.
+Backends, fastest available wins:
+1. GEMINI_API_KEY   → Gemini Flash REST (~seconds; GEMINI_MODEL overrides)
+2. ANTHROPIC_API_KEY → Anthropic SDK, Claude Haiku 4.5 direct (~10-20s)
+3. fallback          → headless `claude -p` CLI (existing local login;
+                       slowest — boots an agent session per call)
 """
 
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 
 from multiverse.schemas import Universe
+
+
+def _complete(prompt: str, timeout: int) -> str:
+    """One planning completion via the fastest configured backend."""
+    if os.environ.get("GEMINI_API_KEY"):
+        import httpx
+
+        model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+        resp = httpx.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+            params={"key": os.environ["GEMINI_API_KEY"]},
+            json={
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"responseMimeType": "application/json"},
+            },
+            timeout=timeout,
+        )
+        resp.raise_for_status()
+        return resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        import anthropic
+
+        client = anthropic.Anthropic()
+        response = client.messages.create(
+            model=os.environ.get("MULTIVERSE_PLANNER_MODEL", "claude-haiku-4-5"),
+            max_tokens=8000,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return next(b.text for b in response.content if b.type == "text")
+
+    out = subprocess.run(
+        ["claude", "-p", prompt, "--output-format", "json", "--model", "haiku"],
+        capture_output=True, text=True, timeout=timeout, check=True,
+    )
+    return json.loads(out.stdout)["result"]
+
+
+def _parse_array(text: str) -> list[dict]:
+    start, end = text.find("["), text.rfind("]")
+    if start < 0 or end < 0:
+        raise ValueError(f"planner returned no JSON array: {text[:200]}")
+    return json.loads(text[start : end + 1])
 
 PLANNER_PROMPT = """\
 You are the story planner for a branching parallel-reality video engine.
@@ -118,15 +164,7 @@ def plan_tree(
         n_total=2 ** (depth + 1) - 2,
         parent_ending=ending,
     )
-    out = subprocess.run(
-        ["claude", "-p", prompt, "--output-format", "json", "--model", "haiku"],
-        capture_output=True, text=True, timeout=timeout, check=True,
-    )
-    text = json.loads(out.stdout)["result"]
-    start, end = text.find("["), text.rfind("]")
-    if start < 0 or end < 0:
-        raise ValueError(f"planner returned no JSON array: {text[:200]}")
-    beats = json.loads(text[start : end + 1])
+    beats = _parse_array(_complete(prompt, timeout))
     _validate_tree(beats, depth)
     return beats[:2]
 
@@ -142,15 +180,7 @@ def plan_beats(
         n=n,
         parent_ending=parent.world_state.get("ending_pose", "as the scene ends"),
     )
-    out = subprocess.run(
-        ["claude", "-p", prompt, "--output-format", "json", "--model", "haiku"],
-        capture_output=True, text=True, timeout=timeout, check=True,
-    )
-    text = json.loads(out.stdout)["result"]
-    start, end = text.find("["), text.rfind("]")
-    if start < 0 or end < 0:
-        raise ValueError(f"planner returned no JSON array: {text[:200]}")
-    beats = json.loads(text[start : end + 1])
+    beats = _parse_array(_complete(prompt, timeout))
     required = {"divergence", "premise", "action", "ending_pose", "visible_consequences"}
     beats = [b for b in beats if required <= set(b)]
     if len(beats) < n:

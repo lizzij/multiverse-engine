@@ -61,6 +61,7 @@ class LiveEngine:
 
         (run_dir / "renders").mkdir(parents=True, exist_ok=True)
         (run_dir / "anchors").mkdir(exist_ok=True)
+        self.source_seed_path = seed_path
         seed_local = run_dir / "renders" / "0.mp4"
         shutil.copy(seed_path, seed_local)
         root = self.tree.nodes["0"]
@@ -107,11 +108,17 @@ class LiveEngine:
             self._log(f"=== cycle {cycle}: root [{root_id}] ===")
 
             if next_beats is None:
-                self._log(f"storyboarding cycle of [{root_id}] ...")
-                beats = await asyncio.to_thread(
-                    plan_tree, self.tree.ancestry(root_id), self.scene_summary, self.depth
-                )
-                self._log("storyboard ready")
+                beats = self._load_seed_storyboard() if cycle == 0 else None
+                if beats is None:
+                    self._log(f"storyboarding cycle of [{root_id}] ...")
+                    beats = await asyncio.to_thread(
+                        plan_tree, self.tree.ancestry(root_id), self.scene_summary, self.depth
+                    )
+                    self._log("storyboard ready")
+                    if cycle == 0:
+                        self._save_seed_storyboard(beats)
+                else:
+                    self._log("storyboard ready (cached at seed)")
             else:
                 beats = next_beats
 
@@ -212,6 +219,28 @@ class LiveEngine:
 
         await expand(root, 0, cycle_beats)
         return leaves
+
+    # Storyboard-at-seed: the first cycle's beat tree is cached next to
+    # the seed file, so repeat streams of the same seed start instantly.
+    def _storyboard_cache_path(self) -> Path:
+        return self.source_seed_path.with_suffix(".storyboard.json")
+
+    def _load_seed_storyboard(self) -> list[dict] | None:
+        path = self._storyboard_cache_path()
+        if not path.exists():
+            return None
+        try:
+            data = json.loads(path.read_text())
+            if data.get("depth") == self.depth and data.get("branches") == self.branches:
+                return data["beats"]
+        except (ValueError, KeyError):
+            pass
+        return None
+
+    def _save_seed_storyboard(self, beats: list[dict]) -> None:
+        self._storyboard_cache_path().write_text(json.dumps(
+            {"depth": self.depth, "branches": self.branches, "beats": beats}, indent=2
+        ))
 
     async def _identity_refresh(self, leaf: Universe) -> None:
         """Slow lane: re-render the dive target against the seed identity
