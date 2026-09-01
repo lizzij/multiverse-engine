@@ -36,7 +36,9 @@ class Handler(SimpleHTTPRequestHandler):
             run_dir = Path(body["run"]).resolve()
             if not run_dir.is_relative_to(Path.cwd()) or not run_dir.is_dir():
                 raise ValueError("bad run dir")
-            (run_dir / "control.json").write_text(json.dumps({"dive_to": str(body["dive_to"])}))
+            tmp = run_dir / "control.json.tmp"
+            tmp.write_text(json.dumps({"dive_to": str(body["dive_to"])}))
+            tmp.replace(run_dir / "control.json")  # atomic: engine never reads a torn file
             self.send_response(204)
             self.end_headers()
         except Exception as exc:

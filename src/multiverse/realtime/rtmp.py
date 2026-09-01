@@ -52,50 +52,51 @@ class Playout:
         self.mux.wait()
 
 
-def _manifest(run_dir: Path) -> dict:
-    return json.loads((run_dir / "manifest.json").read_text())
+def _manifest(run_dir: Path) -> dict | None:
+    """Tolerate a torn/mid-write read: return None and let the caller retry."""
+    try:
+        return json.loads((run_dir / "manifest.json").read_text())
+    except (ValueError, OSError):
+        return None
 
 
-def _first_ready_child(m: dict, node_id: str) -> str | None:
-    kids = sorted(
-        (k for k, v in m["nodes"].items() if v["parent"] == node_id),
-        key=lambda k: int(k.split(".")[-1]),
-    )
-    for k in kids:
-        if m["nodes"][k]["status"] == "ready":
-            return k
-    return None
-
-
-def _next_cycle_root(m: dict, node_id: str) -> str | None:
-    for i, cyc in enumerate(m["cycles"]):
-        if cyc.get("dive_to") == node_id and i + 1 < len(m["cycles"]):
-            return m["cycles"][i + 1]["root"]
-    return None
+def _story_path(m: dict) -> list[str]:
+    """The engine's committed linear story: each cycle's root → dive target."""
+    ids: list[str] = []
+    for cyc in m["cycles"]:
+        root, dive = cyc["root"], cyc.get("dive_to")
+        if not ids or ids[-1] != root:
+            ids.append(root)
+        if dive and dive.startswith(root + "."):
+            rel = dive[len(root) + 1 :].split(".")
+            ids.extend(root + "." + ".".join(rel[:i + 1]) for i in range(len(rel)))
+    return ids
 
 
 def stream(run_dir: Path, rtmp_url: str, max_scenes: int = 0, max_holds: int = 30) -> None:
     playout = Playout(run_dir, rtmp_url)
-    current = _manifest(run_dir)["cycles"][0]["root"]
-    played = holds = 0
+    played = idx = holds = 0
     try:
         while True:
             m = _manifest(run_dir)
-            clip = run_dir / m["nodes"][current]["file"]
-            playout.play(clip)
+            if m is None:
+                time.sleep(0.2)
+                continue
+            path = _story_path(m)
+            current = path[min(idx, len(path) - 1)]
+            playout.play(run_dir / m["nodes"][current]["file"])
             played += 1
             print(f"▶ [{current}] (scene {played})", flush=True)
             if max_scenes and played >= max_scenes:
                 break
-            nxt = _first_ready_child(m, current) or _next_cycle_root(m, current)
-            if nxt:
-                current, holds = nxt, 0
+            nxt = path[idx + 1] if idx + 1 < len(path) else None
+            if nxt and m["nodes"].get(nxt, {}).get("status") == "ready":
+                idx, holds = idx + 1, 0
             else:
                 holds += 1  # loop the scene — the diegetic hold
                 if holds >= max_holds:
                     print("frontier exhausted; ending stream", flush=True)
                     break
-                time.sleep(0.1)
     finally:
         playout.close()
 

@@ -234,11 +234,15 @@ def _subscribe_with_retry(
 
 
 def _download(url: str, out_path: Path) -> None:
+    """Atomic download: consumers already playing out_path never see a
+    truncated file, and a failed download leaves the old file intact."""
     import httpx
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out_path.with_suffix(out_path.suffix + ".part")
     with httpx.stream("GET", url, timeout=120, follow_redirects=True) as response:
         response.raise_for_status()
-        with open(out_path, "wb") as f:
+        with open(tmp, "wb") as f:
             for chunk in response.iter_bytes():
                 f.write(chunk)
+    tmp.replace(out_path)

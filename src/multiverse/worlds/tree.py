@@ -53,7 +53,11 @@ class UniverseTree(BaseModel):
         return list(reversed(chain))
 
     def save(self, path: Path) -> None:
-        path.write_text(self.model_dump_json(indent=2))
+        # Atomic: concurrent readers (player, rtmp, exports) never see a
+        # torn file.
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(self.model_dump_json(indent=2))
+        tmp.replace(path)
 
     @classmethod
     def load(cls, path: Path) -> "UniverseTree":

@@ -14,7 +14,7 @@ import sys
 import time
 from pathlib import Path
 
-from multiverse.realtime.autopilot import run_autopilot
+from autopilot_engine import run_autopilot  # local: historical engine, superseded by realtime/live.py
 
 SCENE_SUMMARY = (
     "A cynical elderly mad scientist with spiky pale blue hair and a white "

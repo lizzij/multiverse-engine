@@ -89,7 +89,9 @@ class LiveEngine:
                 for n in self.tree.nodes.values()
             },
         }
-        (self.run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+        tmp = self.run_dir / "manifest.json.tmp"
+        tmp.write_text(json.dumps(manifest, indent=2))
+        tmp.replace(self.run_dir / "manifest.json")
 
     async def run(self) -> None:
         self._log("preparing identity anchor ...")
@@ -179,7 +181,11 @@ class LiveEngine:
             self._log(f"◎ dive -> [{chosen.id}] {chosen.premise[:60]}")
             if cycle + 1 < self.cycles:
                 await self._identity_refresh(chosen)
-            next_beats = await next_task if next_task else None
+            try:
+                next_beats = await next_task if next_task else None
+            except Exception as exc:
+                self._log(f"next-cycle storyboard failed ({exc}); will replan")
+                next_beats = None
             root_id = chosen.id
         self._log(
             f"done: {self.pool.completed} renders ok, {self.pool.failed} failed"
@@ -201,15 +207,23 @@ class LiveEngine:
             ):
                 await asyncio.gather(*(expand(c, d + 1, []) for c in existing))
                 return
-            if not beats:
-                beats = await asyncio.to_thread(
-                    plan_beats, self.tree.ancestry(node.id), self.scene_summary, self.branches
+            # A planning/anchoring failure abandons this subtree but must
+            # never crash the stream (renders already have their own
+            # FAILED path; give planning and anchoring the same courtesy).
+            try:
+                if not beats:
+                    beats = await asyncio.to_thread(
+                        plan_beats, self.tree.ancestry(node.id), self.scene_summary, self.branches
+                    )
+                # Freeze-safe anchor: never anchor children on a stalled tail.
+                frame = await asyncio.to_thread(
+                    extract_anchor_frame,
+                    Path(node.render_path), self.run_dir / "anchors" / f"{node.id}_last.png",
                 )
-            # Freeze-safe anchor: never anchor children on a stalled tail.
-            frame = extract_anchor_frame(
-                Path(node.render_path), self.run_dir / "anchors" / f"{node.id}_last.png"
-            )
-            frame_url = await asyncio.to_thread(upload_media, frame)
+                frame_url = await asyncio.to_thread(upload_media, frame)
+            except Exception as exc:
+                self._log(f"✗ expansion of [{node.id}] abandoned: {exc}")
+                return
 
             async def render_child(beat: dict) -> None:
                 child = self.tree.add_child(
@@ -228,11 +242,13 @@ class LiveEngine:
                 out = self.run_dir / "renders" / f"{child.id}.mp4"
                 self._log(f"→ submit [{child.id}] {beat['divergence']}")
                 try:
-                    _, took = await self.pool.run(lambda: render_i2v(
+                    # Deadline: a wedged fal request must become FAILED,
+                    # not a forever-stall of the whole cycle.
+                    _, took = await asyncio.wait_for(self.pool.run(lambda: render_i2v(
                         frame_url, prompt, out,
                         duration=self.duration, resolution=self.resolution,
                         seed=42, hint=self.hint,
-                    ))
+                    )), timeout=180)
                 except Exception as exc:
                     child.status = NodeStatus.FAILED
                     self._write_state()
@@ -290,8 +306,9 @@ class LiveEngine:
         drift resets at every cycle boundary. Hidden behind the root's
         fullscreen playback."""
         parent = self.tree.nodes[leaf.parent_id]
-        frame = extract_anchor_frame(
-            Path(parent.render_path), self.run_dir / "anchors" / f"{leaf.id}_refresh_src.png"
+        frame = await asyncio.to_thread(
+            extract_anchor_frame,
+            Path(parent.render_path), self.run_dir / "anchors" / f"{leaf.id}_refresh_src.png",
         )
         frame_url = await asyncio.to_thread(upload_media, frame)
         prompt = (

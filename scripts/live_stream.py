@@ -1,7 +1,7 @@
 """Run the live infinite multiverse engine.
 
 Usage:  uv run python scripts/live_stream.py <seed.mp4> [cycles]
-Then:   python -m http.server 8642   (from the repo root)
+Then:   uv run python scripts/serve.py     (player + click-to-dive on :8642)
 Watch:  http://localhost:8642/web/player.html?run=<run_dir>
 """
 

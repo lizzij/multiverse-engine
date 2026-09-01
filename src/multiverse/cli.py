@@ -21,7 +21,7 @@ from multiverse.renderers import registry
 cli = typer.Typer(add_completion=False, no_args_is_help=True)
 console = Console()
 
-_COMMANDS = {"doctor", "seed", "generate", "branch", "export", "inspect", "status", "--help", "--version"}
+_COMMANDS = {"doctor", "seed", "generate", "branch", "export", "inspect", "status", "--help"}
 
 
 def app() -> None:

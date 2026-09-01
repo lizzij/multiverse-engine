@@ -28,6 +28,7 @@ class RenderPool:
         self._queue: asyncio.PriorityQueue[_Job] = asyncio.PriorityQueue()
         self._seq = 0
         self._runner: asyncio.Task | None = None
+        self._tasks: set[asyncio.Task] = set()  # strong refs: loop holds only weak ones
         self.completed = 0
         self.failed = 0
 
@@ -45,16 +46,20 @@ class RenderPool:
         while True:
             job = await self._queue.get()
             await self._sem.acquire()
-            asyncio.create_task(self._execute(job))
+            task = asyncio.create_task(self._execute(job))
+            self._tasks.add(task)
+            task.add_done_callback(self._tasks.discard)
 
     async def _execute(self, job: _Job) -> None:
         started = time.monotonic()
         try:
             result = await asyncio.to_thread(job.fn)
-            self.completed += 1
-            job.future.set_result((result, time.monotonic() - started))
+            if not job.future.cancelled():
+                self.completed += 1
+                job.future.set_result((result, time.monotonic() - started))
         except Exception as exc:
-            self.failed += 1
-            job.future.set_exception(exc)
+            if not job.future.cancelled():
+                self.failed += 1
+                job.future.set_exception(exc)
         finally:
             self._sem.release()
