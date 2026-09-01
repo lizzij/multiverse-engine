@@ -38,3 +38,42 @@ def compile_prompt(
 ) -> str:
     consequences = "\n".join(f"- {c}" for c in universe.visible_consequences) or "- (none listed)"
     return PRESERVATION_TEMPLATE.format(premise=universe.premise, consequences=consequences)
+
+
+# Continuation prompt (docs/realtime-branching.md §2): dual anchors —
+# Video 1 = identity (original seed), Video 2 = parent tail, Image 1 =
+# parent's exact final frame the new scene must begin from.
+CONTINUATION_TEMPLATE = """\
+Video 1 is the canonical identity and art-style reference for the
+characters and world lineage. Keep the characters exactly recognizable
+as in Video 1.
+
+Image 1 is the exact first frame of this scene; begin there.
+
+Video 2 shows the immediately preceding moments; continue the motion
+seamlessly from its ending. Do not restart or replay Video 2.
+
+Then this happens next:
+
+{action}
+
+This reality's premise:
+
+{premise}
+
+Visible consequences:
+
+{consequences}
+
+Single continuous take. No cuts. No alternate camera angle.
+End the scene holding this pose: {ending_pose}
+"""
+
+
+def compile_continuation_prompt(
+    action: str, premise: str, ending_pose: str, visible_consequences: list[str]
+) -> str:
+    consequences = "\n".join(f"- {c}" for c in visible_consequences) or "- (none listed)"
+    return CONTINUATION_TEMPLATE.format(
+        action=action, premise=premise, ending_pose=ending_pose, consequences=consequences
+    )

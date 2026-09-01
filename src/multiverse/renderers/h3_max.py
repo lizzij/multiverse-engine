@@ -117,20 +117,26 @@ def upload_media(path: Path) -> str:
 
 
 def render_reference(
-    source_url: str,
+    video_urls: str | list[str],
     prompt: str,
     out_path: Path,
     duration: int = 5,
     resolution: str = "768p",
     aspect_ratio: str = "16:9",
     seed: int | None = None,
+    image_urls: list[str] | None = None,
 ) -> dict:
-    """Render one universe from the anchored source via reference-to-video.
+    """Render one universe via reference-to-video.
 
-    ``prompt`` should refer to the source as "Video 1" (see scene/prompts.py).
+    ``prompt`` refers to refs by modality and order ("Video 1", "Video 2",
+    "Image 1" — see scene/prompts.py). For continuations, pass
+    [seed_url, parent_tail_url] plus the parent's last frame as image ref
+    (docs/realtime-branching.md §2).
     """
     payload = build_seed_payload(prompt, duration, resolution, aspect_ratio, seed)
-    payload["reference_video_urls"] = [source_url]
+    payload["reference_video_urls"] = [video_urls] if isinstance(video_urls, str) else video_urls
+    if image_urls:
+        payload["reference_image_urls"] = image_urls
     result = _subscribe_with_retry(REFERENCE_TO_VIDEO_ENDPOINT, payload)
     _download(result["video"]["url"], out_path)
     return {
