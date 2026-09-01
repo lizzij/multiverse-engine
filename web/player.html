@@ -41,7 +41,19 @@ const hud = document.getElementById('hud');
 
 let manifest = null;
 let cycleIdx = 0, level = 0, levelShownAt = Date.now(), diving = false;
+let audioArmed = false;          // browsers need one gesture before sound
 const videos = new Map();        // node id -> pane element
+addEventListener('click', () => { audioArmed = true; applyAudio(); }, {once:false});
+
+// A scene playing by itself gets its native audio; grids stay muted.
+function applyAudio(){
+  const solo = videos.size === 1;
+  for (const el of videos.values()){
+    const v = el.querySelector('video');
+    v.muted = !(audioArmed && solo);
+  }
+  hud.dataset.audio = audioArmed ? '' : ' · click for sound';
+}
 
 const childrenOf = id => Object.keys(manifest.nodes)
   .filter(k => manifest.nodes[k].parent === id)
@@ -83,6 +95,7 @@ function showLevel(root, d){
     const r = regionFor(id, root);
     Object.assign(el.style, {left:r.x*100+'%', top:r.y*100+'%', width:r.w*100+'%', height:r.h*100+'%'});
   }
+  applyAudio();
 }
 
 function doFlash(){ flash.style.transition='none'; flash.style.opacity=.85;
@@ -95,7 +108,7 @@ async function tick(){
   const cyc = manifest.cycles[Math.min(cycleIdx, manifest.cycles.length-1)];
   const root = cyc.root;
   const shown = Date.now() - levelShownAt;
-  hud.textContent = `multiverse · cycle ${cycleIdx} · ${2**level} realit${level?'ies':'y'}`;
+  hud.textContent = `multiverse · cycle ${cycleIdx} · ${2**level} realit${level?'ies':'y'}` + (audioArmed?'':' · click for sound');
   showLevel(root, level);
 
   // shimmer intensifies once the level starts looping
