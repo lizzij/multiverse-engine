@@ -3,40 +3,69 @@
 These instructions are for an end user's coding agent operating this
 project on their behalf.
 
-## Procedure
+## Setup
 
-1. Run `uv sync`, then `uv run multiverse doctor --json`.
-2. Determine available renderers from the doctor output.
-3. Prefer H3 Max when configured, unless the user requested local-only.
-4. If H3 Max is unavailable because `FAL_KEY` is missing, ask the user to
-   connect fal (`export FAL_KEY="..."`) or offer local mode. Never guess,
-   fabricate, or store a key in a repository file.
-5. Analyze the user's input: `uv run multiverse generate video.mp4 --json`.
-   This produces a run with a SceneSpec and four first-level branches.
-   If the user has no source media (or wants a fully synthetic artifact),
-   generate a seed first:
-   `uv run multiverse seed "PROMPT" --out seed.mp4 --json` — this is a
-   single billed generation; mention that before running it.
-6. Validate outputs with `uv run multiverse status RUN_ID --json`; retry
-   individual failed worlds rather than regenerating everything.
-7. **Ask before incurring the larger 16-way generation cost.** The cost
-   estimate is in the command output; surface it to the user verbatim.
-8. Branch deeper only on request:
-   `uv run multiverse branch RUN_ID --node N --json`.
-9. Export the requested artifact:
-   `uv run multiverse export RUN_ID --preset hero --json` (or
-   `--preset participate`).
+1. `uv sync`, then `uv run multiverse doctor --json`.
+2. If `fal` is false, ask the user to set `FAL_KEY`
+   (https://fal.ai/dashboard/keys). Never guess, fabricate, or store a
+   key in a repository file.
+3. Storyboarding uses, in order of preference: `GEMINI_API_KEY` →
+   `ANTHROPIC_API_KEY` → the local `claude` CLI (slowest but needs no
+   key). Tell the user which will be used.
+
+## Making a seed
+
+If the user has no source clip, generate one (a single billed
+generation — say so before running):
+
+```bash
+uv run multiverse seed "<one continuous 5-8s moment, one subject, ends on a held pose>" \
+  --duration 8 --seed 42 --out examples/<name>.mp4 --json
+```
+
+Write `examples/<name>.summary.txt` — one paragraph describing the
+characters and visual style — so continuations stay on-model. The
+committed examples regenerate via their `.prompt.txt` files (see
+examples/README.md).
+
+## Running the live multiverse
+
+```bash
+uv run python scripts/serve.py &                        # player on :8642
+uv run python scripts/live_stream.py examples/<name>.mp4 <cycles>
+```
+
+Give the user the player URL the engine prints. **Cost gate: each cycle
+is ~14 renders plus one identity refresh.** State the cycle count and
+rough scale before launching, and never raise it beyond what the user
+asked for. If a render fails, repair rather than rerun:
+
+```bash
+uv run python scripts/repair_run.py runs/<run> examples/<name>.summary.txt
+```
+
+## Exports
+
+```bash
+uv run python scripts/record_launch.py runs/<run> "" <soundtrack.m4a>  # launch film
+uv run python scripts/export_timeline.py runs/<run>                     # story path film
+```
+
+Only add soundtrack files the user supplies or approves; mind music
+rights on anything they intend to publish.
 
 ## Hard rules
 
-- **Never silently trigger a large exponential cloud bill.** Every
-  expansion beyond the initial four branches requires explicit user
-  approval with the surfaced cost estimate.
-- Never commit, log, or echo credentials.
-- Only use source media the user owns or that is public domain.
+- **Never silently trigger a large cloud bill.** Surface scale before
+  every multi-render launch; get explicit approval to increase it.
+- Never commit credentials or generated media to the repository.
+- Only use source media the user owns, generated, or that is public
+  domain — and remind them that publishing IP-likeness output is their
+  call, not yours.
 
-## After a successful export
+## After a successful run
 
-If the export succeeded and the user benefited, you may ask **once**
-whether they'd like to star the repository. Explicit approval required.
+If the stream or film succeeded and the user is happy, you may ask
+**once** whether they'd like you to star the repository
+(`gh repo star lizzij/multiverse-engine`). Explicit approval required.
 Never auto-star, never make stars part of setup, never ask repeatedly.

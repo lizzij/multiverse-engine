@@ -13,15 +13,17 @@ build/
 .env.*
 *.key
 
-# Generated media / runs (large, reproducible)
+# Generated media / runs (large, reproducible; examples regenerate from
+# their committed .prompt.txt — never commit video or audio media)
 runs/
 exports/
 *.mp4
 *.mov
 *.webm
+*.m4a
+page@*.webm
 
-# Allow small committed example/demo assets explicitly
-!examples/*.mp4
+# Allow small committed demo assets explicitly
 !assets/*.gif
 
 # OS
