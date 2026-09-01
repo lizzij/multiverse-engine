@@ -1,0 +1,180 @@
+{
+  "depth": 3,
+  "branches": 2,
+  "beats": [
+    {
+      "divergence": "mid-fall venom redirect",
+      "premise": "Miles activates his venom power mid-fall, blasting upward to slow descent and catch a building's edge.",
+      "action": "Miles' body erupts with purple electricity as he channels venom energy downward, creating a controlled explosion that reverses his fall. He rockets toward a nearby skyscraper's glass surface with his hand extended to catch.",
+      "ending_pose": "Miles clings to the building's exterior with one hand, suit crackling with purple venom energy, the other arm extended outward for balance, city lights far below.",
+      "visible_consequences": [
+        "deep venom scorch marks radiating from Miles' handprint on glass",
+        "purple electrical arcs dancing across the building facade",
+        "fractured glass spreading spiderweb-pattern from impact"
+      ],
+      "children": [
+        {
+          "divergence": "allied spider-person rescue",
+          "premise": "A second spider-person swings in from above, grabbing Miles before he loses his grip on the venom-crackling building.",
+          "action": "A figure in white and red hood descends on web-line, gripping Miles' outstretched arm firmly. Their momentum swings both away from the collapsing building as aftershocks scatter more glass into the neon-lit darkness.",
+          "ending_pose": "Miles and Gwen swing together on a single taut web-line between skyscrapers, suspended mid-air, Miles' suit glowing faintly, both backlit by distant neon advertisements.",
+          "visible_consequences": [
+            "web-line vibrating under dual weight",
+            "trailing sparks from Miles' venom cascading below",
+            "silhouettes sharp against the pink-purple sky"
+          ],
+          "children": [
+            {
+              "divergence": "safe rooftop landing",
+              "premise": "The rescuer swings Miles to the nearest rooftop, completing a final arc to solid ground.",
+              "action": "Web-line hooks the rooftop edge as both figures land in a crouch on flat concrete. Miles breathes heavily, one hand still glowing faintly with venom residue. The rescuer checks him over, nodding in acknowledgment.",
+              "ending_pose": "Miles kneels on the rooftop, venom-hand glowing softly, looking up at the rescuer's extended hand; the skyline sharp and still around them.",
+              "visible_consequences": [
+                "web-anchors taut on rooftop edges",
+                "Miles' suit smoking from discharge",
+                "both shadows cast long by the setting sun"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "incoming aerial threat",
+              "premise": "As they swing toward safety, a massive silhouette emerges from the purple sky, forcing sharp evasion.",
+              "action": "An enormous shape cuts across the sky faster than either spider-person. The rescuer instinctively pulls Miles into a violent evasive arc. Their web-line snaps tight to redirect. The threat roars past inches away, and both recognize it\u2014danger, not savior.",
+              "ending_pose": "Miles and rescuer hang on a newly angled web-line, both staring upward at where the threat vanished, tensed and ready, Miles' eyes wide with recognition or dread.",
+              "visible_consequences": [
+                "new web-line at steeper angle than before",
+                "sound of massive movement overhead",
+                "both figures rigid in defensive ready-stance"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "divergence": "building destabilization cascade",
+          "premise": "The venom blast spreads across the facade, weakening the entire structure. The building begins to fail catastrophically.",
+          "action": "Cracks spider across the building from Miles' handprint outward in expanding rings. The structure groans. Chunks of glass and steel fracture and fall. Miles abandons his grip, launching himself backward in a diving arc toward an adjacent building.",
+          "ending_pose": "Miles mid-leap in a backward dive, arms spread, silhouetted against the crumbling structure behind him, heading toward a lower neighboring rooftop.",
+          "visible_consequences": [
+            "massive chunks of facade falling in slow-motion behind Miles",
+            "secondary explosion cascade of shattering glass",
+            "dust plume obscuring the lower city"
+          ],
+          "children": [
+            {
+              "divergence": "parkour chain reaction",
+              "premise": "Each landing triggers another collapse. Miles has to keep jumping from building to building in a domino effect down the skyline.",
+              "action": "Miles lands hard on the next rooftop\u2014it buckles immediately. He bounds forward without hesitation and launches toward the next structure. Each impact triggers the next collapse. A chain of falling skyscrapers stretches behind him in receding silhouettes.",
+              "ending_pose": "Miles mid-leap between two buildings, body horizontal against the darkening sky, one hand reaching forward, a line of collapsing structures cascading behind him like dominoes.",
+              "visible_consequences": [
+                "chain of collapses receding into distance",
+                "dust clouds rising from each collapse point",
+                "Miles' trajectory toward a massive structure that seems too solid to fail"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "crystalline transformation",
+              "premise": "The destroyed building doesn't fall\u2014it transforms. Broken edges begin to glow with purple venom energy and solidify into an impossible crystalline structure.",
+              "action": "Rather than collapse fully, the building's broken edges begin to glow with Miles' venom energy. The pieces solidify mid-air, reforming into a translucent crystalline bridge of interconnected geometric shards spanning between rooftops. Miles watches in awe as his power reshapes reality.",
+              "ending_pose": "Miles stands alone on the glowing crystalline bridge structure, surfaces beneath his feet translucent and pulsing, stretching ahead and behind into impossible geometry.",
+              "visible_consequences": [
+                "bridge surfaces refracting light at impossible angles",
+                "venom energy pulsing through crystal like a heartbeat",
+                "original building now a skeletal frame of crystal spikes"
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "divergence": "dimensional portal acceleration",
+      "premise": "Miles passes through a hidden dimensional barrier at terminal velocity, tumbling into a space where gravity inverts and reality fractures into impossible geometry.",
+      "action": "Miles plummets through a shimmering membrane of distorted light. On the far side, the fall continues inverted\u2014city geometry appears above and below simultaneously at conflicting angles. Miles' body tumbles through vertigo-inducing space, arms flailing for balance.",
+      "ending_pose": "Miles tumbles diagonally through fractured space with arms spread for balance, glowing structures repeating at impossible angles above and below him, his expression a mixture of confusion and wonder.",
+      "visible_consequences": [
+        "city geometry repeating in multiple directions",
+        "chromatic aberration increasing as Miles falls deeper",
+        "halftone comic-book dots fragmenting and reassembling"
+      ],
+      "children": [
+        {
+          "divergence": "gwen appears as parallel consciousness",
+          "premise": "Another spider-person materializes in the fractured space, falling from a different direction. Miles recognizes Gwen Stacy\u2014Spider-Gwen\u2014also trapped in impossible geometry.",
+          "action": "A shadow resolves into a figure also tumbling through the inverted space. As they draw closer, Miles recognizes Gwen's red hood and white accents. Their eyes lock across the fractured space. For a moment, they fall in parallel, reaching one hand toward each other.",
+          "ending_pose": "Miles and Gwen tumble in parallel through inverted space, separated by twenty feet, both reaching one hand toward each other with recognition and concern, fractured city geometry swirling in conflicting directions around them.",
+          "visible_consequences": [
+            "two figures silhouetted against impossible building arrangements",
+            "web-lines trailing from both but anchoring nowhere",
+            "light refracting differently off each suit"
+          ],
+          "children": [
+            {
+              "divergence": "webbing alliance anchor",
+              "premise": "Miles and Gwen work together, firing webbing to create an anchor point in the impossible space, forming a temporary alliance.",
+              "action": "Without speaking, Miles and Gwen understand. Both fire webbing toward a central void point\u2014their lines cross and interweave, creating a temporary anchor of interlocked strands. Both swing toward it, trajectories converging.",
+              "ending_pose": "Miles and Gwen hang together on intersecting web-lines forming an X-pattern, shoulder to shoulder at the center of inverted space, both looking outward with determined expressions.",
+              "visible_consequences": [
+                "web-lines forming geometric X at composition center",
+                "both suits glowing faintly in sync",
+                "fractured city held in perfect balance around them"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "collision conflict",
+              "premise": "Miles and Gwen's intentions diverge. One believes this is a trap; the other sees an escape route. They collide instead of connect.",
+              "action": "As they reach toward each other, Gwen suddenly swerves toward a path neither can confirm is up or down. Miles interprets this as danger and attacks defensively, firing webbing. Their trajectories collide violently\u2014not in alliance, but in combat.",
+              "ending_pose": "Miles and Gwen separate forcefully, both spinning away, webbing tangled between them, both in defensive postures positioned back-to-back diagonally, mistrust and confusion in their eyes.",
+              "visible_consequences": [
+                "webbing creating tense web between figures",
+                "both spider-people at opposite angles in fracturing space",
+                "fractured geometry vibrating with tension of their conflict"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "divergence": "crystalline trap closure",
+          "premise": "The fractured space begins to solidify. Geometric crystals form around Miles, tightening into an inescapable cage of impossible angles.",
+          "action": "The shimmering air crystallizes. Geometric polyhedra of impossible dimensions grow from the void, moving inward like a cage closing. Miles thrashes, trying to escape, but the crystals advance faster than he can react, compressing closer every second.",
+          "ending_pose": "Miles suspended at the center of a crystalline cage made of geometries that hurt to perceive, all angles and impossible light refraction, venom energy from his suit reflecting chaotically off advancing crystal walls.",
+          "visible_consequences": [
+            "crystalline structures advancing from all directions simultaneously",
+            "venom energy reflecting chaotically off crystal facets",
+            "Miles' expression shifting from confusion to desperation"
+          ],
+          "children": [
+            {
+              "divergence": "venom detonation breakthrough",
+              "premise": "Miles centers himself completely, focusing all venom power into one massive internal explosion that shatters the crystalline cage from within.",
+              "action": "Miles stops fleeing and focuses inward. His entire suit erupts with purple venom energy in one massive detonation. Crystalline structures shatter spectacularly, fragments exploding outward in all directions. For one moment, space fills with glowing shards and purple electricity.",
+              "ending_pose": "Miles hangs at the center of his own explosion, surrounded by dissipating crystal fragments and electric arcs, suit smoking heavily with venom discharge, free but utterly spent in empty inverted space.",
+              "visible_consequences": [
+                "crystal fragments spiraling away in all directions",
+                "persistent venom energy arcs in the void",
+                "Miles' suit steaming and crackling from immense power release"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "crystalline acceptance",
+              "premise": "As walls close in, Miles stops fighting. He accepts the geometry as something real, not a cage. The crystals stop moving\u2014held him suspended, not crushed.",
+              "action": "Miles' thrashing slows, then stops. His breathing becomes steady. He examines the crystalline walls not as a trap but as something that exists. The moment he accepts it, the crystals cease their advance. He's suspended in perfect balance.",
+              "ending_pose": "Miles floats peacefully inside a perfect crystalline geometric frame at the exact center, surrounded by glowing facets, his suit glowing in harmony with the crystal lattice rather than struggling against it.",
+              "visible_consequences": [
+                "perfect geometric symmetry with Miles at center",
+                "light refracting through facets in calculated beautiful patterns",
+                "Miles' expression calm and meditative, as if he's understood something"
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

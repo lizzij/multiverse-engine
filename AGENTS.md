@@ -11,23 +11,34 @@ SOURCE → SceneSpec → UniverseTree → Materialize(node) → Renderer → Syn
 ```
 
 - `src/multiverse/schemas.py` — SceneSpec, Universe, tree/run models.
-- `src/multiverse/scene/` — multimodal source analysis → SceneSpec.
+- `src/multiverse/scene/` — prompt compilers (+ analyzer stub).
 - `src/multiverse/worlds/` — divergence planning + the lazy UniverseTree.
-- `src/multiverse/renderers/` — provider adapters behind a small protocol.
-  `h3_max.py` is the default provider; it must stay cleanly separated
-  from core.
-- `src/multiverse/alignment/` — optional temporal retiming of outputs.
-- `src/multiverse/compose/` — deterministic FFmpeg/PyAV compositing
-  (fracture, zoom, exports). The generator never produces the multiverse
-  layout; the compositor does.
+- `src/multiverse/media.py` — ffmpeg helpers: freeze-safe anchors,
+  crossfade concat, downscale.
+- `src/multiverse/realtime/` — the live lane: `planner.py` (storyboard
+  beats via Gemini/Anthropic API or claude CLI), `scheduler.py`
+  (priority render pool), `live.py` (dive-cycle engine, plan-ahead,
+  identity refresh, click control), `rtmp.py` (broadcast playout).
+- `src/multiverse/renderers/` — provider adapters behind a small
+  protocol. `h3_max.py` is the default; `h3_local.py` (vLLM-Omni,
+  experimental). Providers must stay cleanly separated from core.
+- `src/multiverse/alignment/`, `src/multiverse/compose/` — temporal
+  normalization and offline compositing (partly stubs; the live player
+  does fracture/zoom presentation today).
+- `web/player.html` — the fracture player (manifest-driven).
+- `scripts/` — user-facing entry points; `experiments/` — dev spikes,
+  not maintained.
 
-Full specification: [docs/spec.md](docs/spec.md).
+Full specification: [docs/spec.md](docs/spec.md); live-mode design:
+[docs/realtime-branching.md](docs/realtime-branching.md).
 
 ## Critical invariants
 
-1. **Do not make rendered parents the default pixel reference for
-   descendants.** Semantic state recurses; visual reference stays
-   anchored to the original source (spec §17).
+1. **Identity anchors to the seed; continuity anchors to the parent.**
+   Same-moment branches render against the original source (spec §17).
+   Story continuations may chain on the parent's freeze-safe final
+   frame, but drift must be reset against the seed (the identity-refresh
+   lane) — see docs/realtime-branching.md §2 for the amended rule.
 2. **Lazy materialization is mandatory.** Never render the full tree.
    A node may exist as `VIRTUAL` with no video (spec §25, §49).
 3. **Cost gating.** Any path that can fan out renders must go through
