@@ -10,8 +10,10 @@
   body.panel-open #stage-wrap{right:280px}
   #stage{position:relative;aspect-ratio:16/9;width:100%;max-height:100vh;max-width:177.78vh;
          transition:transform 1.1s cubic-bezier(.7,0,.3,1);transform-origin:0 0}
-  .pane{position:absolute;overflow:hidden;box-sizing:border-box;border:1px solid rgba(80,255,160,.25)}
-  .pane video{width:100%;height:100%;object-fit:cover;display:block}
+  .pane{position:absolute;overflow:hidden;box-sizing:border-box;border:1px solid rgba(80,255,160,.25);
+        cursor:pointer}
+  .pane:hover{border-color:rgba(120,255,190,.8);box-shadow:inset 0 0 30px rgba(80,255,160,.25)}
+  .pane video{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
   .pane .label{position:absolute;left:6px;bottom:4px;color:rgba(180,255,210,.7);
                font-size:10px;text-shadow:0 0 4px #000;max-width:90%;white-space:nowrap;
                overflow:hidden;text-overflow:ellipsis;pointer-events:none}
@@ -31,8 +33,7 @@
   #panel h3{margin:8px 0 4px;font-size:10px;letter-spacing:.15em;
             text-transform:uppercase;color:rgba(160,255,190,.55)}
   #prog{height:6px;background:rgba(80,255,160,.15);border-radius:3px;margin:4px 0 2px}
-  #prog i{display:block;height:100%;background:#4dffa0;border-radius:3px;
-          transition:width .5s}
+  #prog i{display:block;height:100%;background:#4dffa0;border-radius:3px;transition:width .5s}
   #proglabel{color:rgba(160,255,190,.6);font-size:10px}
   .nrow{display:flex;gap:6px;align-items:baseline;white-space:nowrap;overflow:hidden;
         text-overflow:ellipsis}
@@ -69,97 +70,64 @@
 </div>
 <script>
 const run = new URLSearchParams(location.search).get('run');
-const panel = document.getElementById('panel');
-document.body.classList.add('panel-open');   // stage shrinks; panel never overlaps video
-document.getElementById('paneltoggle').onclick = e => {
-  panel.classList.toggle('hidden');
-  document.body.classList.toggle('panel-open', !panel.classList.contains('hidden'));
-  e.stopPropagation();
-};
-const prevStatus = new Map();
-const logLines = [];
-
-function updatePanel(root){
-  // progress toward the next fracture
-  const next = level < manifest.depth ? nodesAtLevel(root, level+1) : [];
-  const ready = next.filter(id => manifest.nodes[id]?.status==='ready').length;
-  const bar = document.querySelector('#prog i');
-  const label = document.getElementById('proglabel');
-  if (next.length){
-    bar.style.width = (100*ready/next.length)+'%';
-    label.textContent = `${ready}/${next.length} realities ready`;
-  } else if (Object.keys(manifest.nodes).every(id => manifest.nodes[id].parent !== root)){
-    bar.style.width = '0%'; label.textContent = 'storyboarding…';
-  } else {
-    bar.style.width = '100%'; label.textContent = 'cycle complete — diving soon';
-  }
-  // node list: everything in the current cycle's subtree
-  const rows = Object.keys(manifest.nodes)
-    .filter(id => id===root || id.startsWith(root==='0'?'0.':root+'.'))
-    .sort();
-  document.getElementById('nodelist').innerHTML = rows.map(id => {
-    const n = manifest.nodes[id];
-    return `<div class="nrow"><span class="dot ${n.status}"></span>`+
-           `<b>${id}</b> <span>${(n.premise||'').slice(0,40)}</span></div>`;
-  }).join('');
-  // transition log
-  for (const [id,n] of Object.entries(manifest.nodes)){
-    if (prevStatus.get(id) !== n.status){
-      if (prevStatus.has(id) || n.status !== 'ready' || id !== '0')
-        logLines.unshift(`${new Date().toLocaleTimeString()} [${id}] ${n.status}`);
-      prevStatus.set(id, n.status);
-    }
-  }
-  logLines.length = Math.min(logLines.length, 40);
-  document.getElementById('log').innerHTML = logLines.map(l=>`<div>${l}</div>`).join('');
-}
-const MIN_SHOW = 6500;           // ms a level must play before it may fracture
+const MIN_SHOW = 6500;
 const stage = document.getElementById('stage');
 const panesEl = document.getElementById('panes');
 const shimmer = document.getElementById('shimmer');
 const flash = document.getElementById('flash');
 const hud = document.getElementById('hud');
+const panel = document.getElementById('panel');
+
+document.body.classList.add('panel-open');
+document.getElementById('paneltoggle').onclick = e => {
+  panel.classList.toggle('hidden');
+  document.body.classList.toggle('panel-open', !panel.classList.contains('hidden'));
+  e.stopPropagation();
+};
 
 let manifest = null;
-let cycleIdx = 0, level = 0, levelShownAt = Date.now(), diving = false;
-let audioArmed = false;          // browsers need one gesture before sound
-const videos = new Map();        // node id -> pane element
-addEventListener('click', () => { audioArmed = true; applyAudio(); }, {once:false});
+let rootId = null;              // the universe currently framing the stage
+let level = 0, levelShownAt = Date.now(), diving = false, dives = 0;
+let audioArmed = false;
+const videos = new Map();
+const prevStatus = new Map();
+const logLines = [];
+addEventListener('click', () => { audioArmed = true; applyAudio(); });
 
-// A scene playing by itself gets its native audio; grids stay muted.
+// Sound follows the selected universe: solo scenes play their native audio.
 function applyAudio(){
   const solo = videos.size === 1;
   for (const el of videos.values()){
-    const v = el.querySelector('video');
-    v.muted = !(audioArmed && solo);
+    el.querySelector('video').muted = !(audioArmed && solo);
   }
-  hud.dataset.audio = audioArmed ? '' : ' · click for sound';
 }
 
 const childrenOf = id => Object.keys(manifest.nodes)
   .filter(k => manifest.nodes[k].parent === id)
-  .sort((a,b) => +a.split('.').pop() - +b.split('.').pop());
+  .sort((a,b) => +a.split('.').pop() - +b.split('.').pop())
+  .slice(0, manifest.branches);
 
 function nodesAtLevel(root, d){
   let cur = [root];
   for (let i=0;i<d;i++) cur = cur.flatMap(childrenOf);
   return cur;
 }
-const allReady = ids => ids.length>0 && ids.every(id => manifest.nodes[id]?.status==='ready');
+const isReady = id => manifest.nodes[id]?.status === 'ready';
+const allReady = ids => ids.length>0 && ids.every(isReady);
 
 function regionFor(id, root){
   const rel = id===root ? [] : id.slice(root.length+1).split('.');
   let r = {x:0,y:0,w:1,h:1};
   rel.forEach((seg,i)=>{
-    const sibs = childrenOf(rel.slice(0,i).reduce((p,s)=>p+'.'+s, root));
-    const k = Math.max(0, sibs.indexOf(rel.slice(0,i+1).reduce((p,s)=>p+'.'+s, root)));
+    const parentId = i===0 ? root : root+'.'+rel.slice(0,i).join('.');
+    const k = Math.max(0, childrenOf(parentId).indexOf(root+'.'+rel.slice(0,i+1).join('.')));
     if (i%2===0){ r.w/=2; r.x += k*r.w; } else { r.h/=2; r.y += k*r.h; }
   });
   return r;
 }
 
 function showLevel(root, d){
-  const ids = nodesAtLevel(root, d);
+  const ids = nodesAtLevel(root, d).filter(isReady);
   const keep = new Set(ids);
   for (const [id, el] of videos) if (!keep.has(id)){ el.remove(); videos.delete(id); }
   for (const id of ids){
@@ -171,7 +139,9 @@ function showLevel(root, d){
       v.src = `../${run}/${manifest.nodes[id].file}`;
       const lab = document.createElement('div'); lab.className='label';
       lab.textContent = manifest.nodes[id].premise || '';
-      el.append(v, lab); panesEl.append(el); videos.set(id, el);
+      el.append(v, lab);
+      el.onclick = ev => { ev.stopPropagation(); audioArmed = true; selectUniverse(id); };
+      panesEl.append(el); videos.set(id, el);
     }
     const r = regionFor(id, root);
     Object.assign(el.style, {left:r.x*100+'%', top:r.y*100+'%', width:r.w*100+'%', height:r.h*100+'%'});
@@ -182,37 +152,89 @@ function showLevel(root, d){
 function doFlash(){ flash.style.transition='none'; flash.style.opacity=.85;
   requestAnimationFrame(()=>{ flash.style.transition='opacity .5s'; flash.style.opacity=0; }); }
 
+function zoomTo(id, then){
+  diving = true;
+  const r = regionFor(id, rootId);
+  stage.style.transform = `scale(${1/r.w}) translate(${-r.x*100}%, ${-r.y*100}%)`;
+  setTimeout(()=>{
+    stage.style.transition='none'; stage.style.transform='none';
+    then();
+    requestAnimationFrame(()=>{ stage.style.transition='transform 1.1s cubic-bezier(.7,0,.3,1)'; });
+    doFlash(); diving = false;
+  }, 1200);
+}
+
+// User selects a universe: tell the engine, zoom in, continue from there.
+function selectUniverse(id){
+  if (diving || id === rootId || !isReady(id)) return;
+  fetch('/control', {method:'POST', headers:{'Content-Type':'application/json'},
+                     body: JSON.stringify({run, dive_to: id})}).catch(()=>{});
+  logLines.unshift(`${new Date().toLocaleTimeString()} you dove into [${id}]`);
+  zoomTo(id, ()=>{ rootId = id; level = 0; levelShownAt = Date.now(); dives++;
+                   showLevel(rootId, 0); });
+}
+
 async function tick(){
   try { manifest = await (await fetch(`../${run}/manifest.json`, {cache:'no-store'})).json(); }
   catch(e){ return; }
   if (!manifest.cycles?.length || diving) return;
-  const cyc = manifest.cycles[Math.min(cycleIdx, manifest.cycles.length-1)];
-  const root = cyc.root;
+  if (rootId === null) rootId = manifest.cycles[0].root;
   const shown = Date.now() - levelShownAt;
-  hud.textContent = `multiverse · cycle ${cycleIdx} · ${2**level} realit${level?'ies':'y'}` + (audioArmed?'':' · click for sound');
-  showLevel(root, level);
-  updatePanel(root);
+  hud.textContent = `multiverse · dive ${dives} · ${2**level} realit${level?'ies':'y'}`
+                    + (audioArmed?'':' · click for sound');
+  showLevel(rootId, level);
+  updatePanel(rootId);
 
-  // shimmer intensifies once the level starts looping
   const over = Math.max(0, shown - manifest.duration*1000);
   shimmer.style.opacity = Math.min(.75, over/25000);
 
   if (level < manifest.depth){
-    const next = nodesAtLevel(root, level+1);
+    const next = nodesAtLevel(rootId, level+1);
     if (shown > MIN_SHOW && allReady(next)){ level++; levelShownAt = Date.now(); doFlash(); }
-  } else if (cyc.dive_to && manifest.cycles[cycleIdx+1] && shown > MIN_SHOW){
-    diving = true;
-    const r = regionFor(cyc.dive_to, root);
-    stage.style.transform = `scale(${1/r.w}) translate(${-r.x*100}%, ${-r.y*100}%)`;
-    setTimeout(()=>{
-      cycleIdx++; level = 0; levelShownAt = Date.now();
-      stage.style.transition='none'; stage.style.transform='none';
-      showLevel(manifest.cycles[cycleIdx].root, 0);
-      requestAnimationFrame(()=>{ stage.style.transition='transform 1.1s cubic-bezier(.7,0,.3,1)'; });
-      doFlash(); diving = false;
-    }, 1200);
+  } else if (shown > MIN_SHOW){
+    // Autopilot dive: follow the engine's committed next cycle.
+    const idx = manifest.cycles.findIndex(c => c.root === rootId);
+    const cyc = idx >= 0 ? manifest.cycles[idx] : null;
+    if (cyc?.dive_to && manifest.cycles[idx+1] && isReady(cyc.dive_to)){
+      const target = cyc.dive_to;
+      zoomTo(target, ()=>{ rootId = target; level = 0; levelShownAt = Date.now(); dives++;
+                           showLevel(rootId, 0); });
+    }
   }
 }
+
+function updatePanel(root){
+  const next = level < manifest.depth ? nodesAtLevel(root, level+1) : [];
+  const ready = next.filter(isReady).length;
+  const bar = document.querySelector('#prog i');
+  const label = document.getElementById('proglabel');
+  if (next.length && next.some(id => manifest.nodes[id])){
+    bar.style.width = (100*ready/next.length)+'%';
+    label.textContent = `${ready}/${next.length} realities ready`;
+  } else if (level < manifest.depth){
+    bar.style.width = '0%'; label.textContent = 'storyboarding…';
+  } else {
+    bar.style.width = '100%'; label.textContent = 'click a reality — or autopilot dives soon';
+  }
+  const prefix = root + '.';
+  const rows = Object.keys(manifest.nodes)
+    .filter(id => id===root || id.startsWith(prefix)).sort();
+  document.getElementById('nodelist').innerHTML = rows.slice(0, 30).map(id => {
+    const n = manifest.nodes[id];
+    return `<div class="nrow"><span class="dot ${n.status}"></span>`+
+           `<b>${id}</b> <span>${(n.premise||'').slice(0,40)}</span></div>`;
+  }).join('');
+  for (const [id,n] of Object.entries(manifest.nodes)){
+    if (prevStatus.get(id) !== n.status){
+      if (prevStatus.has(id) || (n.status !== 'ready' || id !== '0'))
+        logLines.unshift(`${new Date().toLocaleTimeString()} [${id}] ${n.status}`);
+      prevStatus.set(id, n.status);
+    }
+  }
+  logLines.length = Math.min(logLines.length, 40);
+  document.getElementById('log').innerHTML = logLines.map(l=>`<div>${l}</div>`).join('');
+}
+
 setInterval(tick, 1000); tick();
 </script>
 </body>
