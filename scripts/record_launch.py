@@ -23,7 +23,7 @@ from playwright.sync_api import sync_playwright
 TRIM = 0.8  # seconds cut from the head of the capture
 
 run = sys.argv[1].rstrip("/")
-out = (Path(sys.argv[2]) if len(sys.argv) > 2
+out = (Path(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2]
        else Path(run) / f"launch-{time.strftime('%H%M%S')}.mp4")  # unique: never clobber an open preview
 soundtrack = Path(sys.argv[3]) if len(sys.argv) > 3 else Path("runs/assets-local/rick-theme.m4a")
 url = f"http://localhost:8642/web/player.html?run={run}&rec=1"
