@@ -94,16 +94,29 @@ def _validate_tree(beats: list[dict], depth: int) -> None:
 
 
 def plan_tree(
-    ancestry: list[Universe], scene_summary: str, depth: int = 3, timeout: int = 300
+    ancestry: list[Universe],
+    scene_summary: str,
+    depth: int = 3,
+    timeout: int = 300,
+    extra_beats: list[dict] | None = None,
 ) -> list[dict]:
-    """Plan a full cycle's storyboard (binary beat tree) in one call."""
-    parent = ancestry[-1]
+    """Plan a full cycle's storyboard (binary beat tree) in one call.
+
+    `extra_beats`: planned-but-unrendered beats extending the ancestry —
+    lets the next cycle's storyboard be planned before this cycle's
+    scenes exist (semantics only, pixels never gate planning).
+    """
+    ancestry_text = _ancestry_text(ancestry)
+    ending = ancestry[-1].world_state.get("ending_pose", "as the scene ends")
+    for b in extra_beats or []:
+        ancestry_text += f"\n- [planned] {b['premise']}: {b['action']}"
+        ending = b.get("ending_pose", ending)
     prompt = TREE_PROMPT.format(
         scene_summary=scene_summary,
-        ancestry=_ancestry_text(ancestry),
+        ancestry=ancestry_text,
         depth=depth,
         n_total=2 ** (depth + 1) - 2,
-        parent_ending=parent.world_state.get("ending_pose", "as the scene ends"),
+        parent_ending=ending,
     )
     out = subprocess.run(
         ["claude", "-p", prompt, "--output-format", "json", "--model", "haiku"],

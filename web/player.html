@@ -21,6 +21,31 @@
   #flash{position:absolute;inset:0;background:#bfffdc;opacity:0;pointer-events:none}
   #hud{position:fixed;top:10px;left:12px;color:rgba(160,255,190,.5);font-size:11px;
        letter-spacing:.2em;text-transform:uppercase}
+  #panel{position:fixed;top:0;right:0;bottom:0;width:280px;box-sizing:border-box;
+         background:rgba(0,12,6,.82);border-left:1px solid rgba(80,255,160,.2);
+         color:#b8ffd4;font:11px/1.5 ui-monospace,Menlo,monospace;padding:12px;
+         overflow-y:auto;transition:transform .3s}
+  #panel.hidden{transform:translateX(100%)}
+  #panel h3{margin:8px 0 4px;font-size:10px;letter-spacing:.15em;
+            text-transform:uppercase;color:rgba(160,255,190,.55)}
+  #prog{height:6px;background:rgba(80,255,160,.15);border-radius:3px;margin:4px 0 2px}
+  #prog i{display:block;height:100%;background:#4dffa0;border-radius:3px;
+          transition:width .5s}
+  #proglabel{color:rgba(160,255,190,.6);font-size:10px}
+  .nrow{display:flex;gap:6px;align-items:baseline;white-space:nowrap;overflow:hidden;
+        text-overflow:ellipsis}
+  .dot{flex:none;width:7px;height:7px;border-radius:50%;background:#555;align-self:center}
+  .dot.rendering{background:#ffc94d;animation:pulse 1s infinite alternate}
+  .dot.ready{background:#4dffa0}
+  .dot.failed{background:#ff5d5d}
+  .dot.queued{background:#7aa}
+  @keyframes pulse{from{opacity:.35}to{opacity:1}}
+  #log{color:rgba(180,255,210,.55);font-size:10px}
+  #log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #paneltoggle{position:fixed;top:8px;right:10px;z-index:10;cursor:pointer;
+               color:rgba(160,255,190,.6);font:12px ui-monospace,monospace;
+               background:rgba(0,12,6,.6);border:1px solid rgba(80,255,160,.25);
+               border-radius:4px;padding:2px 8px;user-select:none}
 </style>
 </head>
 <body>
@@ -30,8 +55,57 @@
   <div id="flash"></div>
 </div></div>
 <div id="hud">multiverse</div>
+<div id="paneltoggle">⚙ status</div>
+<div id="panel">
+  <h3>next fracture</h3>
+  <div id="prog"><i style="width:0"></i></div>
+  <div id="proglabel">–</div>
+  <h3>universes</h3>
+  <div id="nodelist"></div>
+  <h3>log</h3>
+  <div id="log"></div>
+</div>
 <script>
 const run = new URLSearchParams(location.search).get('run');
+const panel = document.getElementById('panel');
+document.getElementById('paneltoggle').onclick = e => { panel.classList.toggle('hidden'); e.stopPropagation(); };
+const prevStatus = new Map();
+const logLines = [];
+
+function updatePanel(root){
+  // progress toward the next fracture
+  const next = level < manifest.depth ? nodesAtLevel(root, level+1) : [];
+  const ready = next.filter(id => manifest.nodes[id]?.status==='ready').length;
+  const bar = document.querySelector('#prog i');
+  const label = document.getElementById('proglabel');
+  if (next.length){
+    bar.style.width = (100*ready/next.length)+'%';
+    label.textContent = `${ready}/${next.length} realities ready`;
+  } else if (Object.keys(manifest.nodes).every(id => manifest.nodes[id].parent !== root)){
+    bar.style.width = '0%'; label.textContent = 'storyboarding…';
+  } else {
+    bar.style.width = '100%'; label.textContent = 'cycle complete — diving soon';
+  }
+  // node list: everything in the current cycle's subtree
+  const rows = Object.keys(manifest.nodes)
+    .filter(id => id===root || id.startsWith(root==='0'?'0.':root+'.'))
+    .sort();
+  document.getElementById('nodelist').innerHTML = rows.map(id => {
+    const n = manifest.nodes[id];
+    return `<div class="nrow"><span class="dot ${n.status}"></span>`+
+           `<b>${id}</b> <span>${(n.premise||'').slice(0,40)}</span></div>`;
+  }).join('');
+  // transition log
+  for (const [id,n] of Object.entries(manifest.nodes)){
+    if (prevStatus.get(id) !== n.status){
+      if (prevStatus.has(id) || n.status !== 'ready' || id !== '0')
+        logLines.unshift(`${new Date().toLocaleTimeString()} [${id}] ${n.status}`);
+      prevStatus.set(id, n.status);
+    }
+  }
+  logLines.length = Math.min(logLines.length, 40);
+  document.getElementById('log').innerHTML = logLines.map(l=>`<div>${l}</div>`).join('');
+}
 const MIN_SHOW = 6500;           // ms a level must play before it may fracture
 const stage = document.getElementById('stage');
 const panesEl = document.getElementById('panes');
@@ -110,6 +184,7 @@ async function tick(){
   const shown = Date.now() - levelShownAt;
   hud.textContent = `multiverse · cycle ${cycleIdx} · ${2**level} realit${level?'ies':'y'}` + (audioArmed?'':' · click for sound');
   showLevel(root, level);
+  updatePanel(root);
 
   // shimmer intensifies once the level starts looping
   const over = Math.max(0, shown - manifest.duration*1000);

@@ -74,11 +74,19 @@ def freeze_safe_time(clip: Path, window: float = 1.5, noise: float = 0.003, min_
 
 
 def extract_anchor_frame(clip: Path, out: Path) -> Path:
-    """Freeze-safe final frame — the continuation anchor."""
-    t = freeze_safe_time(clip)
+    """Freeze-safe final frame — the continuation anchor.
+
+    Clamped below the container duration (which can exceed the last video
+    frame), with an -sseof fallback so an anchor always materializes.
+    """
+    t = min(freeze_safe_time(clip), duration_seconds(clip) - 0.2)
     out.parent.mkdir(parents=True, exist_ok=True)
-    _run(["-ss", f"{max(t - 0.05, 0):.3f}", "-i", str(clip), "-frames:v", "1",
+    _run(["-ss", f"{max(t, 0):.3f}", "-i", str(clip), "-frames:v", "1",
           "-update", "1", str(out)])
+    if not out.exists():
+        _run(["-sseof", "-0.5", "-i", str(clip), "-frames:v", "1", "-update", "1", str(out)])
+    if not out.exists():
+        raise RuntimeError(f"could not extract anchor frame from {clip}")
     return out
 
 

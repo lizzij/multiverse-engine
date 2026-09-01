@@ -99,38 +99,70 @@ class LiveEngine:
         self.identity_url = await asyncio.to_thread(upload_media, identity_small)
 
         root_id = "0"
+        next_beats: list[dict] | None = None
         for cycle in range(self.cycles):
             entry = {"root": root_id, "dive_to": None}
             self.cycle_log.append(entry)
             self._write_state()
             self._log(f"=== cycle {cycle}: root [{root_id}] ===")
-            leaves = await self.expand_cycle(root_id)
-            ready = [l for l in leaves if l.status is NodeStatus.READY]
-            if not ready:
-                self._log("no leaves survived; stopping")
-                break
-            chosen = random.choice(ready)
+
+            if next_beats is None:
+                self._log(f"storyboarding cycle of [{root_id}] ...")
+                beats = await asyncio.to_thread(
+                    plan_tree, self.tree.ancestry(root_id), self.scene_summary, self.depth
+                )
+                self._log("storyboard ready")
+            else:
+                beats = next_beats
+
+            # Pre-commit the dive path (semantics known now), so the NEXT
+            # cycle's storyboard plans in parallel with this cycle's renders.
+            path, path_beats, level_beats = [], [], beats
+            for _ in range(self.depth):
+                i = random.randrange(min(self.branches, len(level_beats)))
+                path.append(i)
+                path_beats.append(level_beats[i])
+                level_beats = level_beats[i].get("children", [])
+            dive_id = root_id + "." + ".".join(str(i + 1) for i in path)
+            next_task = None
+            if cycle + 1 < self.cycles:
+                next_task = asyncio.create_task(asyncio.to_thread(
+                    plan_tree, self.tree.ancestry(root_id), self.scene_summary,
+                    self.depth, 300, path_beats,
+                ))
+
+            await self.expand_cycle(root_id, beats)
+
+            chosen = self.tree.nodes.get(dive_id)
+            if chosen is None or chosen.status is not NodeStatus.READY:
+                ready = [
+                    n for n in self.tree.nodes.values()
+                    if n.parent_id and n.id.startswith(root_id) and n.depth
+                    == self.tree.nodes[root_id].depth + self.depth
+                    and n.status is NodeStatus.READY
+                ]
+                if not ready:
+                    self._log("no leaves survived; stopping")
+                    break
+                chosen = random.choice(ready)
+                if next_task:
+                    next_task.cancel()
+                    next_task = None
+                self._log(f"pre-committed leaf failed; falling back to [{chosen.id}]")
             entry["dive_to"] = chosen.id
             self._write_state()
             self._log(f"◎ dive -> [{chosen.id}] {chosen.premise[:60]}")
             if cycle + 1 < self.cycles:
                 await self._identity_refresh(chosen)
+            next_beats = await next_task if next_task else None
             root_id = chosen.id
         self._log(
             f"done: {self.pool.completed} renders ok, {self.pool.failed} failed"
         )
 
-    async def expand_cycle(self, root_id: str) -> list[Universe]:
+    async def expand_cycle(self, root_id: str, cycle_beats: list[dict]) -> list[Universe]:
         leaves: list[Universe] = []
         root = self.tree.nodes[root_id]
-        # Storyboard-ahead: the whole cycle's beat tree in one planner call,
-        # hidden behind the root's fullscreen playback. Zero planning
-        # latency during the cycle.
-        self._log(f"storyboarding cycle of [{root_id}] ...")
-        cycle_beats = await asyncio.to_thread(
-            plan_tree, self.tree.ancestry(root_id), self.scene_summary, self.depth
-        )
-        self._log("storyboard ready")
 
         async def expand(node: Universe, d: int, beats: list[dict]) -> None:
             if d >= self.depth:
