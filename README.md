@@ -21,10 +21,18 @@ uv sync
 uv run multiverse doctor
 ```
 
-Then:
+Then either branch your own clip:
 
 ```bash
 uv run multiverse generate your-video.mp4
+```
+
+or generate a fully synthetic seed first (no source media, no copyright
+exposure — the whole artifact is end-to-end generated):
+
+```bash
+uv run multiverse seed "two inventors argue over a strange machine in a cluttered garage" --out seed.mp4
+uv run multiverse generate seed.mp4
 ```
 
 ## 🤖 Using a coding agent?
@@ -66,6 +74,7 @@ Two key invariants:
 
 ```bash
 multiverse doctor                       # environment / credentials check
+multiverse seed "PROMPT"                # generate a synthetic source moment
 multiverse generate source.mp4          # analyze + branch into 4 worlds
 multiverse branch RUN_ID --node 11      # branch any node into 4 children
 multiverse export RUN_ID --preset hero  # hero / participate exports

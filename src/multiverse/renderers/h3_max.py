@@ -1,6 +1,7 @@
 """fal / MiniMax H3 Max adapter (spec §18).
 
 Endpoints:
+- text input:   minimax/h3-max/text-to-video   (seed generation)
 - image input:  minimax/h3-max/image-to-video
 - video input:  minimax/h3-max/reference-to-video
 
@@ -10,6 +11,7 @@ Auth via FAL_KEY. The fal SDK is imported lazily so core never depends on it.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from multiverse.schemas import (
     RendererCapabilities,
@@ -46,3 +48,74 @@ class H3MaxRenderer:
         if not self.is_available():
             raise RuntimeError("H3 Max requires fal.ai — set FAL_KEY (see README: BYOK)")
         raise NotImplementedError("H3 Max rendering lands in Phase 0/2 (see ROADMAP.md)")
+
+
+TEXT_TO_VIDEO_ENDPOINT = "minimax/h3-max/text-to-video"
+
+_RESOLUTIONS = {"480p": "480P", "768p": "768P"}
+_ASPECTS = ("21:9", "16:9", "4:3", "1:1", "3:4", "9:16")
+
+
+def build_seed_payload(
+    prompt: str,
+    duration: int = 5,
+    resolution: str = "768p",
+    aspect_ratio: str = "1:1",
+    seed: int | None = None,
+) -> dict:
+    """Validate and build the text-to-video request payload."""
+    if resolution.lower() not in _RESOLUTIONS:
+        raise ValueError(f"resolution must be one of {sorted(_RESOLUTIONS)}")
+    if aspect_ratio not in _ASPECTS:
+        raise ValueError(f"aspect_ratio must be one of {_ASPECTS}")
+    if not 5 <= duration <= 15:
+        raise ValueError("duration must be 5-15 seconds")
+    payload: dict = {
+        "prompt": prompt,
+        "duration": duration,
+        "resolution": _RESOLUTIONS[resolution.lower()],
+        "aspect_ratio": aspect_ratio,
+        "prompt_expansion_mode": "balanced",
+    }
+    if seed is not None:
+        payload["seed"] = seed
+    return payload
+
+
+def generate_seed(
+    prompt: str,
+    out_path: Path,
+    duration: int = 5,
+    resolution: str = "768p",
+    aspect_ratio: str = "1:1",
+    seed: int | None = None,
+) -> dict:
+    """Generate an original source moment via H3 Max text-to-video.
+
+    Returns metadata: output path, expanded prompt, seed, timings.
+    """
+    if not os.environ.get("FAL_KEY"):
+        raise RuntimeError("H3 Max requires fal.ai — set FAL_KEY (see README: BYOK)")
+
+    import fal_client
+    import httpx
+
+    payload = build_seed_payload(prompt, duration, resolution, aspect_ratio, seed)
+    result = fal_client.subscribe(TEXT_TO_VIDEO_ENDPOINT, arguments=payload)
+
+    video_url = result["video"]["url"]
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with httpx.stream("GET", video_url, timeout=120, follow_redirects=True) as response:
+        response.raise_for_status()
+        with open(out_path, "wb") as f:
+            for chunk in response.iter_bytes():
+                f.write(chunk)
+
+    return {
+        "output_path": str(out_path),
+        "endpoint": TEXT_TO_VIDEO_ENDPOINT,
+        "prompt": prompt,
+        "expanded_prompt": result.get("expanded_prompt"),
+        "requested": payload,
+        "file_size_bytes": out_path.stat().st_size,
+    }

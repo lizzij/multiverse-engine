@@ -21,7 +21,7 @@ from multiverse.renderers import registry
 cli = typer.Typer(add_completion=False, no_args_is_help=True)
 console = Console()
 
-_COMMANDS = {"doctor", "generate", "branch", "export", "inspect", "status", "--help", "--version"}
+_COMMANDS = {"doctor", "seed", "generate", "branch", "export", "inspect", "status", "--help", "--version"}
 
 
 def app() -> None:
@@ -64,6 +64,42 @@ def doctor(json_output: bool = typer.Option(False, "--json")) -> None:
     else:
         console.print("[yellow]Not ready.[/yellow] Set FAL_KEY to enable H3 Max, or install ffmpeg.")
     raise typer.Exit(0 if ready else 1)
+
+
+@cli.command()
+def seed(
+    prompt: str,
+    out: Path = typer.Option(Path("seed.mp4"), "--out"),
+    duration: int = typer.Option(5, "--duration", help="5-15 seconds"),
+    resolution: str = typer.Option("768p", "--resolution", help="480p | 768p"),
+    aspect: str = typer.Option("1:1", "--aspect"),
+    seed_value: int | None = typer.Option(None, "--seed"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    """Generate an original source moment via H3 Max text-to-video.
+
+    A generated seed is fully synthetic — no copyright exposure — and can be
+    branched like any other source. Billed to your fal account.
+    """
+    from multiverse.renderers.h3_max import generate_seed
+
+    try:
+        meta = generate_seed(
+            prompt, out, duration=duration, resolution=resolution,
+            aspect_ratio=aspect, seed=seed_value,
+        )
+    except Exception as exc:  # provider errors (auth, balance, validation) → clean message
+        if json_output:
+            print(json.dumps({"error": "seed_failed", "message": str(exc)}))
+        else:
+            console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from None
+
+    if json_output:
+        print(json.dumps(meta, indent=2))
+    else:
+        console.print(f"[green]✓[/green] seed written to [bold]{meta['output_path']}[/bold]")
+        console.print(f"  next: [dim]multiverse generate {meta['output_path']}[/dim]")
 
 
 @cli.command()

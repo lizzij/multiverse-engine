@@ -13,6 +13,10 @@ project on their behalf.
    fabricate, or store a key in a repository file.
 5. Analyze the user's input: `uv run multiverse generate video.mp4 --json`.
    This produces a run with a SceneSpec and four first-level branches.
+   If the user has no source media (or wants a fully synthetic artifact),
+   generate a seed first:
+   `uv run multiverse seed "PROMPT" --out seed.mp4 --json` — this is a
+   single billed generation; mention that before running it.
 6. Validate outputs with `uv run multiverse status RUN_ID --json`; retry
    individual failed worlds rather than regenerating everything.
 7. **Ask before incurring the larger 16-way generation cost.** The cost
