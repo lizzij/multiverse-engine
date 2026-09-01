@@ -1,0 +1,180 @@
+{
+  "depth": 3,
+  "branches": 2,
+  "beats": [
+    {
+      "divergence": "everything-at-once",
+      "premise": "The verse-jump begins: Evelyn glimpses every life she could have lived.",
+      "action": "The office shreds into a whirl of streaking light around Evelyn. Her face and clothes flicker rapidly through dozens of alternate lives — glamorous, martial, aproned, painted — dozens of Evelyns strobing in place while Deirdre and the desk smear into ribbons of color.",
+      "ending_pose": "Evelyn frozen mid-flicker, half movie-star and half laundromat owner, staring straight into the camera",
+      "visible_consequences": [
+        "her appearance strobes through many different lives",
+        "the office smears into ribbons of streaking light",
+        "receipts orbit her like a galaxy"
+      ],
+      "children": [
+        {
+          "divergence": "movie-star-life",
+          "premise": "The life where she never left Hong Kong: Evelyn the film star.",
+          "action": "The whirl resolves into a night premiere. Evelyn stands glamorous in a sequined emerald gown on a red carpet, hair in an elegant updo, flashbulbs popping. Deirdre is now a reporter thrusting a microphone toward her. Evelyn smiles for the cameras but her eyes are wistful.",
+          "ending_pose": "Evelyn poised under the flashbulbs, chin high, a wistful half-smile held",
+          "visible_consequences": [
+            "red carpet, velvet ropes and popping flashbulbs",
+            "Evelyn transformed: sequined gown, elegant updo",
+            "Deirdre reappears as a reporter with a microphone"
+          ],
+          "children": [
+            {
+              "divergence": "alley-in-another-life",
+              "premise": "Behind the theater, the life not lived finds her anyway.",
+              "action": "Evelyn steps through the stage door into a rain-slicked neon alley, still in her gown. A kind-faced man in a suit waits in the half-light. They face each other, close but not touching, neon reflections rippling in the puddles as she speaks one quiet sentence.",
+              "ending_pose": "the two of them facing each other in the neon rain, almost touching, held",
+              "visible_consequences": [
+                "rainy back alley lit by pink and blue neon",
+                "her gown glittering against the wet darkness",
+                "puddle reflections rippling with neon light"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "opera-stage",
+              "premise": "The life on the stage: Evelyn the Peking-opera performer.",
+              "action": "The alley curtains away and Evelyn is mid-performance on a Peking-opera stage in full painted face and embroidered regalia, water sleeves sweeping arcs of white silk, the audience a dark void beyond the footlights.",
+              "ending_pose": "a dramatic opera pose held, water sleeves fully extended, painted face fierce",
+              "visible_consequences": [
+                "full opera makeup and embroidered regalia",
+                "white water sleeves sweeping long arcs",
+                "footlights against a pitch-dark audience"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "divergence": "kung-fu-master",
+          "premise": "The life of discipline: Evelyn the martial-arts master.",
+          "action": "The whirl resolves into a temple courtyard at dawn. Evelyn, in black silk training clothes with her hair braided, executes precise kung fu forms; the orbiting receipts become falling ginkgo leaves that she strikes from the air one by one.",
+          "ending_pose": "final stance held, fist wrapped in palm, leaves settling around her",
+          "visible_consequences": [
+            "stone temple courtyard in golden dawn light",
+            "black silk training clothes, braided hair",
+            "receipts become falling ginkgo leaves"
+          ],
+          "children": [
+            {
+              "divergence": "master-duel",
+              "premise": "The audit becomes single combat.",
+              "action": "Deirdre strides into the courtyard in her beige office wear wielding a heavy audit ledger like a war fan. They duel with comic seriousness — wire-fu leaps over office furniture that shouldn't be there, the ledger swatting Evelyn's strikes aside in bursts of loose receipts.",
+              "ending_pose": "both frozen mid-air mid-strike, fingers locked, receipts hanging around them",
+              "visible_consequences": [
+                "office furniture scattered incongruously in the courtyard",
+                "the audit ledger wielded like a weapon",
+                "receipts bursting with each blocked strike"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "chef-racaccoonie",
+              "premise": "The life at the grill — and the secret under the hat.",
+              "action": "A smash transition: Evelyn is a hibachi chef mid-performance at a teppanyaki grill, spatulas flashing. Beside her a rival chef's tall white hat slips, revealing a raccoon perched on his head, tiny paws gripping his hair like reins. Evelyn freezes mid egg-flip, staring.",
+              "ending_pose": "Evelyn frozen mid-flip with the egg hanging in the air, eyes locked on the raccoon",
+              "visible_consequences": [
+                "teppanyaki grill flames and flying spatulas",
+                "a raccoon revealed under the rival chef's hat",
+                "an egg suspended mid-air over the grill"
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "divergence": "the-bagel-pull",
+      "premise": "Everything gathers toward the everything bagel.",
+      "action": "The office darkens. Above the desk a black everything-bagel void forms and slowly rotates, and the receipts, pens and fluorescent light begin streaming into it. Evelyn grips the desk edge against the pull while Deirdre keeps stamping forms, entirely unbothered, her papers whipping upward one by one.",
+      "ending_pose": "Evelyn leaning hard against the pull, hair and cardigan streaming toward the bagel, knuckles white on the desk",
+      "visible_consequences": [
+        "a slowly rotating black bagel void above the desk",
+        "receipts and pens streaming upward into it",
+        "Deirdre stamping forms, unbothered, papers whipping away"
+      ],
+      "children": [
+        {
+          "divergence": "hotdog-fingers",
+          "premise": "The universe where evolution took a different path.",
+          "action": "The pull snaps and reality reassembles wrong: the office is pastel-tinted, and both Evelyn and Deirdre now have long floppy hotdog fingers. Evelyn stares at her wobbling hands in horror; across the desk, Deirdre slowly extends one drooping hotdog hand toward her in tenderness.",
+          "ending_pose": "two hotdog hands nearly touching over the receipts, held",
+          "visible_consequences": [
+            "long floppy hotdog fingers on both women",
+            "the office tinted in soft pastels",
+            "a tender hand reaching across the audit desk"
+          ],
+          "children": [
+            {
+              "divergence": "hotdog-tenderness",
+              "premise": "In this universe, this is how love looks.",
+              "action": "The tenderness lands: Deirdre dabs a tear from Evelyn's cheek with one floppy hotdog finger. Soft light. In the blurred background a figure plays a piano with bare feet. Evelyn laugh-cries and leans her forehead toward Deirdre's.",
+              "ending_pose": "foreheads leaning together over the desk, hotdog hands clasped, held",
+              "visible_consequences": [
+                "a hotdog finger gently dabbing a tear",
+                "piano played with feet, soft-focus background",
+                "warm pastel light over the audit desk"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "glitter-jobu",
+              "premise": "Chaos wears sequins: the Jobu universe.",
+              "action": "The pastel office bursts into an all-white void. Evelyn stands transformed in an absurd maximalist outfit — glitter face paint, a rhinestone Elvis collar, a pom-pom crown — surrounded by confetti frozen motionless in mid-air. She looks at her own outfit and cackles once.",
+              "ending_pose": "arms flung wide amid the frozen confetti, glitter face tilted up, held",
+              "visible_consequences": [
+                "an endless white void",
+                "maximalist glitter outfit with rhinestone collar",
+                "confetti hanging frozen in the air"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "divergence": "rocks",
+          "premise": "The universe where life never happened. At least here it's quiet.",
+          "action": "Total silence. Smash to a sun-baked canyon rim: two boulders sit side by side overlooking the vast empty canyon — one wearing googly eyes, one plain. Wind moves dust between them. White subtitle text appears at the bottom of the frame: 'at least here, it's quiet.'",
+          "ending_pose": "the two rocks side by side on the canyon rim, wind and dust only, held",
+          "visible_consequences": [
+            "two boulders on a canyon rim, one with googly eyes",
+            "vast empty canyon under hard sunlight",
+            "white subtitle text on the silent frame"
+          ],
+          "children": [
+            {
+              "divergence": "rocks-shuffle",
+              "premise": "Even as a rock, she wants to feel something.",
+              "action": "With a gravelly scrape the googly-eyed rock scoots an inch toward the cliff edge. A beat. A second pair of googly eyes pops onto the plain rock, which swivels them toward the edge in alarm. Subtitle: 'don't you dare.'",
+              "ending_pose": "both rocks at the cliff edge, googly eyes fixed on the drop below, held",
+              "visible_consequences": [
+                "scrape marks in the dust behind the moved rock",
+                "googly eyes appearing on the second rock",
+                "the cliff edge inches away"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "rock-leap",
+              "premise": "She goes over the edge, joyfully.",
+              "action": "The googly-eyed rock tips over the rim and falls in serene slow motion, the canyon vast and golden below, dust trailing like a comet tail. Subtitle: 'wheeeee.' The plain rock's googly eyes peer over the edge after her.",
+              "ending_pose": "the googly-eyed rock frozen mid-fall against the immense canyon, held",
+              "visible_consequences": [
+                "the rock mid-fall in slow motion, dust comet-tail",
+                "the immense golden canyon below",
+                "googly eyes peering over the rim from above"
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
