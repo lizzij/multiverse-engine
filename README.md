@@ -2,7 +2,7 @@
 
 One moment. Infinite realities.
 
-<!-- HERO GIF: 1 → 2 → 4 → 8 → dive → ∞ (assets/hero.gif) -->
+![Spider-Verse demo](https://github.com/lizzij/multiverse-engine/releases/download/demos/demo-spiderverse.gif)
 
 Give Multiverse one 5-second moment and watch it branch, **live**: an
 LLM storyboards divergent continuations of the story, a video model
@@ -13,6 +13,31 @@ dives into one universe and does it again. Forever. Click any reality
 to steer, with sound.
 
 Same characters. Same story. Every possible next five seconds.
+
+## Demos
+
+Previews at 3× speed; full films with audio are on the
+[demos release](https://github.com/lizzij/multiverse-engine/releases/tag/demos).
+Every frame is generated — synthetic seed → live storyboard →
+real-time branching → the actual player, recorded.
+
+**One fall, eight realities** — the fall is the invariant; the worlds
+diverge around it (previewed at the top of this page).
+[▶ full film](https://github.com/lizzij/multiverse-engine/releases/download/demos/multiverse-engine-spiderman.mp4)
+
+**One argument, eight timelines** — same scene, live-fractured.
+[▶ full film](https://github.com/lizzij/multiverse-engine/releases/download/demos/multiverse-engine-rick-and-morty.mp4)
+
+![Rick and Morty demo](https://github.com/lizzij/multiverse-engine/releases/download/demos/demo-rickle.gif)
+
+**One mother and daughter, every universe** — a hand-authored
+storyboard steering the branches to canonical destinations.
+[▶ full film](https://github.com/lizzij/multiverse-engine/releases/download/demos/multiverse-engine-eeaao.mp4)
+
+![EEAAO demo](https://github.com/lizzij/multiverse-engine/releases/download/demos/demo-eeaao.gif)
+
+> These use recognizable styles as private prototypes ([policy](examples/README.md));
+> point the same pipeline at an original seed and everything is yours.
 
 ## Quickstart
 
