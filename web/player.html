@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>MULTIVERSE — live</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:system-ui}
+  #stage-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;aspect-ratio:16/9;width:100vw;max-height:100vh;max-width:177.78vh;
+         transition:transform 1.1s cubic-bezier(.7,0,.3,1);transform-origin:0 0}
+  .pane{position:absolute;overflow:hidden;box-sizing:border-box;border:1px solid rgba(80,255,160,.25)}
+  .pane video{width:100%;height:100%;object-fit:cover;display:block}
+  .pane .label{position:absolute;left:6px;bottom:4px;color:rgba(180,255,210,.7);
+               font-size:10px;text-shadow:0 0 4px #000;max-width:90%;white-space:nowrap;
+               overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+  #shimmer{position:absolute;inset:0;pointer-events:none;opacity:0;mix-blend-mode:screen;
+           background:radial-gradient(ellipse at 30% 20%, rgba(60,255,140,.35), transparent 60%),
+                      radial-gradient(ellipse at 75% 80%, rgba(40,220,120,.3), transparent 55%);
+           animation:drift 3s ease-in-out infinite alternate}
+  @keyframes drift{from{transform:translateY(-2%) scale(1.02)}to{transform:translateY(2%) scale(1.05)}}
+  #flash{position:absolute;inset:0;background:#bfffdc;opacity:0;pointer-events:none}
+  #hud{position:fixed;top:10px;left:12px;color:rgba(160,255,190,.5);font-size:11px;
+       letter-spacing:.2em;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div id="stage-wrap"><div id="stage">
+  <div id="panes"></div>
+  <div id="shimmer"></div>
+  <div id="flash"></div>
+</div></div>
+<div id="hud">multiverse</div>
+<script>
+const run = new URLSearchParams(location.search).get('run');
+const MIN_SHOW = 6500;           // ms a level must play before it may fracture
+const stage = document.getElementById('stage');
+const panesEl = document.getElementById('panes');
+const shimmer = document.getElementById('shimmer');
+const flash = document.getElementById('flash');
+const hud = document.getElementById('hud');
+
+let manifest = null;
+let cycleIdx = 0, level = 0, levelShownAt = Date.now(), diving = false;
+const videos = new Map();        // node id -> pane element
+
+const childrenOf = id => Object.keys(manifest.nodes)
+  .filter(k => manifest.nodes[k].parent === id)
+  .sort((a,b) => +a.split('.').pop() - +b.split('.').pop());
+
+function nodesAtLevel(root, d){
+  let cur = [root];
+  for (let i=0;i<d;i++) cur = cur.flatMap(childrenOf);
+  return cur;
+}
+const allReady = ids => ids.length>0 && ids.every(id => manifest.nodes[id]?.status==='ready');
+
+function regionFor(id, root){
+  const rel = id===root ? [] : id.slice(root.length+1).split('.');
+  let r = {x:0,y:0,w:1,h:1};
+  rel.forEach((seg,i)=>{
+    const sibs = childrenOf(rel.slice(0,i).reduce((p,s)=>p+'.'+s, root));
+    const k = Math.max(0, sibs.indexOf(rel.slice(0,i+1).reduce((p,s)=>p+'.'+s, root)));
+    if (i%2===0){ r.w/=2; r.x += k*r.w; } else { r.h/=2; r.y += k*r.h; }
+  });
+  return r;
+}
+
+function showLevel(root, d){
+  const ids = nodesAtLevel(root, d);
+  const keep = new Set(ids);
+  for (const [id, el] of videos) if (!keep.has(id)){ el.remove(); videos.delete(id); }
+  for (const id of ids){
+    let el = videos.get(id);
+    if (!el){
+      el = document.createElement('div'); el.className='pane';
+      const v = document.createElement('video');
+      v.muted = true; v.autoplay = true; v.loop = true; v.playsInline = true;
+      v.src = `../${run}/${manifest.nodes[id].file}`;
+      const lab = document.createElement('div'); lab.className='label';
+      lab.textContent = manifest.nodes[id].premise || '';
+      el.append(v, lab); panesEl.append(el); videos.set(id, el);
+    }
+    const r = regionFor(id, root);
+    Object.assign(el.style, {left:r.x*100+'%', top:r.y*100+'%', width:r.w*100+'%', height:r.h*100+'%'});
+  }
+}
+
+function doFlash(){ flash.style.transition='none'; flash.style.opacity=.85;
+  requestAnimationFrame(()=>{ flash.style.transition='opacity .5s'; flash.style.opacity=0; }); }
+
+async function tick(){
+  try { manifest = await (await fetch(`../${run}/manifest.json`, {cache:'no-store'})).json(); }
+  catch(e){ return; }
+  if (!manifest.cycles?.length || diving) return;
+  const cyc = manifest.cycles[Math.min(cycleIdx, manifest.cycles.length-1)];
+  const root = cyc.root;
+  const shown = Date.now() - levelShownAt;
+  hud.textContent = `multiverse · cycle ${cycleIdx} · ${2**level} realit${level?'ies':'y'}`;
+  showLevel(root, level);
+
+  // shimmer intensifies once the level starts looping
+  const over = Math.max(0, shown - manifest.duration*1000);
+  shimmer.style.opacity = Math.min(.75, over/25000);
+
+  if (level < manifest.depth){
+    const next = nodesAtLevel(root, level+1);
+    if (shown > MIN_SHOW && allReady(next)){ level++; levelShownAt = Date.now(); doFlash(); }
+  } else if (cyc.dive_to && manifest.cycles[cycleIdx+1] && shown > MIN_SHOW){
+    diving = true;
+    const r = regionFor(cyc.dive_to, root);
+    stage.style.transform = `scale(${1/r.w}) translate(${-r.x*100}%, ${-r.y*100}%)`;
+    setTimeout(()=>{
+      cycleIdx++; level = 0; levelShownAt = Date.now();
+      stage.style.transition='none'; stage.style.transform='none';
+      showLevel(manifest.cycles[cycleIdx].root, 0);
+      requestAnimationFrame(()=>{ stage.style.transition='transform 1.1s cubic-bezier(.7,0,.3,1)'; });
+      doFlash(); diving = false;
+    }, 1200);
+  }
+}
+setInterval(tick, 1000); tick();
+</script>
+</body>
+</html>

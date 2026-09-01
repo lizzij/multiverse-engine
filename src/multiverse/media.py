@@ -39,6 +39,14 @@ def extract_last_frame(clip: Path, out: Path) -> Path:
     return out
 
 
+def downscale(clip: Path, height: int, out: Path) -> Path:
+    """Downscale a clip (e.g. the identity anchor, to cut reference-token cost)."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    _run(["-i", str(clip), "-vf", f"scale=-2:{height}", "-c:v", "libx264",
+          "-preset", "fast", "-c:a", "aac", str(out)])
+    return out
+
+
 def concat(clips: list[Path], out: Path) -> Path:
     """Concatenate clips (video+audio, re-encoded) into one timeline."""
     inputs: list[str] = []
