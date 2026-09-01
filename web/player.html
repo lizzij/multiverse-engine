@@ -190,7 +190,10 @@ async function tick(){
 
   if (level < manifest.depth){
     const next = nodesAtLevel(rootId, level+1);
-    if (shown > MIN_SHOW && allReady(next)){ level++; levelShownAt = Date.now(); doFlash(); }
+    const expected = manifest.branches ** (level+1);  // never fracture into a partial grid
+    if (shown > MIN_SHOW && next.length === expected && allReady(next)){
+      level++; levelShownAt = Date.now(); doFlash();
+    }
   } else if (shown > MIN_SHOW){
     // Autopilot dive: follow the engine's committed next cycle.
     const idx = manifest.cycles.findIndex(c => c.root === rootId);
@@ -206,11 +209,12 @@ async function tick(){
 function updatePanel(root){
   const next = level < manifest.depth ? nodesAtLevel(root, level+1) : [];
   const ready = next.filter(isReady).length;
+  const expected = level < manifest.depth ? manifest.branches ** (level+1) : 0;
   const bar = document.querySelector('#prog i');
   const label = document.getElementById('proglabel');
-  if (next.length && next.some(id => manifest.nodes[id])){
-    bar.style.width = (100*ready/next.length)+'%';
-    label.textContent = `${ready}/${next.length} realities ready`;
+  if (expected && next.length){
+    bar.style.width = (100*ready/expected)+'%';
+    label.textContent = `${ready}/${expected} realities ready`;
   } else if (level < manifest.depth){
     bar.style.width = '0%'; label.textContent = 'storyboarding…';
   } else {
