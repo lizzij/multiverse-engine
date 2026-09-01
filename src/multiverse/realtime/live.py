@@ -25,7 +25,7 @@ from datetime import datetime
 from pathlib import Path
 
 from multiverse.media import downscale, extract_anchor_frame
-from multiverse.realtime.planner import plan_tree
+from multiverse.realtime.planner import plan_beats, plan_tree
 from multiverse.realtime.scheduler import RenderPool
 from multiverse.renderers.h3_max import render_i2v, render_reference, upload_media
 from multiverse.scene.prompts import compile_i2v_prompt
@@ -140,6 +140,24 @@ class LiveEngine:
 
             await self.expand_cycle(root_id, beats)
 
+            # A viewer's click (control.json, written by scripts/serve.py)
+            # overrides the pre-committed autopilot path.
+            user_choice = self._read_control()
+            if user_choice:
+                node = self.tree.nodes.get(user_choice)
+                if node and node.status is NodeStatus.READY:
+                    self._log(f"☞ viewer dove into [{user_choice}]")
+                    if next_task:
+                        next_task.cancel()
+                        next_task = None
+                    entry["dive_to"] = user_choice
+                    self._write_state()
+                    if cycle + 1 < self.cycles:
+                        await self._identity_refresh(node)
+                    next_beats = None
+                    root_id = user_choice
+                    continue
+
             chosen = self.tree.nodes.get(dive_id)
             if chosen is None or chosen.status is not NodeStatus.READY:
                 ready = [
@@ -175,6 +193,18 @@ class LiveEngine:
             if d >= self.depth:
                 leaves.append(node)
                 return
+            # Re-rooting on a node whose children already exist (a viewer
+            # dove into mid-tree): reuse the rendered subtree instantly.
+            existing = self.tree.children(node.id)[: self.branches]
+            if len(existing) == self.branches and all(
+                c.status is NodeStatus.READY for c in existing
+            ):
+                await asyncio.gather(*(expand(c, d + 1, []) for c in existing))
+                return
+            if not beats:
+                beats = await asyncio.to_thread(
+                    plan_beats, self.tree.ancestry(node.id), self.scene_summary, self.branches
+                )
             # Freeze-safe anchor: never anchor children on a stalled tail.
             frame = extract_anchor_frame(
                 Path(node.render_path), self.run_dir / "anchors" / f"{node.id}_last.png"
@@ -219,6 +249,18 @@ class LiveEngine:
 
         await expand(root, 0, cycle_beats)
         return leaves
+
+    def _read_control(self) -> str | None:
+        """Consume a viewer dive request written by scripts/serve.py."""
+        path = self.run_dir / "control.json"
+        if not path.exists():
+            return None
+        try:
+            choice = json.loads(path.read_text()).get("dive_to")
+        except ValueError:
+            choice = None
+        path.unlink(missing_ok=True)
+        return choice
 
     # Storyboard-at-seed: the first cycle's beat tree is cached next to
     # the seed file, so repeat streams of the same seed start instantly.
