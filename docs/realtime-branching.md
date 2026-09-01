@@ -144,10 +144,26 @@ Mechanics:
   with attention (spec §25), even in live mode.
 - All fal submissions go through the existing lock-flap retry.
 
-Throughput sanity check: steady-state interactive play with 4-way
-speculation ≈ 4 renders per accepted scene. With L ≈ 60s and scenes
-looping ~L before fracturing (see §5), that's ~4 concurrent jobs — well
-within queue limits; cost governor below is the real constraint.
+### Slot policy (fal concurrency limit C = 10)
+
+```text
+4 slots  p0: children of the playing node        (speculative fracture)
+4 slots  p1: children of the committed/likely     submitted the moment
+             next node                            that node's render lands
+2 slots  reserve: retries, regenerations,         never given to
+         keeping one sibling subtree warm         speculation
+```
+
+What C = 10 does and does not buy:
+- Full two-level speculation (p0 + p1) fits — the fracture cadence is
+  paid once (L) and then pipelined: while scene N loops, N+1's children
+  are already rendering.
+- Aggregate throughput 10 renders / L ≈ 10/min exceeds playback
+  consumption, so grid mode keeps every visible pane's subtree warm in
+  ~2 waves.
+- It does **not** shorten the fracture cadence: depth stays
+  latency-bound at one level per L ≈ 45–60s regardless of C. Extra
+  slots buy breadth (more warm realities), never depth.
 
 ---
 
