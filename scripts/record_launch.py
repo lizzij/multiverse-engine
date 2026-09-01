@@ -23,7 +23,8 @@ from playwright.sync_api import sync_playwright
 TRIM = 0.8  # seconds cut from the head of the capture
 
 run = sys.argv[1].rstrip("/")
-out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(run) / "launch-video.mp4"
+out = (Path(sys.argv[2]) if len(sys.argv) > 2
+       else Path(run) / f"launch-{time.strftime('%H%M%S')}.mp4")  # unique: never clobber an open preview
 soundtrack = Path(sys.argv[3]) if len(sys.argv) > 3 else Path("runs/assets-local/rick-theme.m4a")
 url = f"http://localhost:8642/web/player.html?run={run}&rec=1"
 manifest = json.loads((Path(run) / "manifest.json").read_text())
@@ -49,8 +50,8 @@ with sync_playwright() as p:
         state = page.evaluate("() => ({dives, level})")
         if state["dives"] >= total_cycles - 1 and state["level"] >= depth:
             break
-        time.sleep(1)
-    page.wait_for_timeout(8000)  # hold the final grid
+        time.sleep(0.5)
+    page.wait_for_timeout(int(manifest["duration"] * 1000) + 600)  # one playthrough of the final grid
 
     events = page.evaluate("() => REC_EVENTS")
     video = page.video
@@ -76,24 +77,34 @@ duration = float(subprocess.run(
     ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(webm)],
     capture_output=True, text=True, check=True).stdout.strip()) - TRIM
 
+THEME_VOL = 0.35   # keep the music a bed, not a lead
+RAMP = 1.5         # seconds of fade in/out around each solo
+
 inputs = ["-ss", str(TRIM), "-i", str(webm), "-stream_loop", "-1", "-i", str(soundtrack)]
 filters, mix = [], []
-# Theme under the grids, muted during solos.
-mute = "+".join(f"between(t,{s:.2f},{e:.2f})" for s, e, _ in solos) or "0"
+# Theme under the grids: smooth ramps around each solo (0 inside a solo,
+# linear ramp over RAMP seconds on either side, full volume elsewhere).
+factors = [
+    f"clip(max(({s:.2f}-t)/{RAMP},(t-{e:.2f})/{RAMP}),0,1)" for s, e, _ in solos
+] or ["1"]
+gain = factors[0]
+for f in factors[1:]:
+    gain = f"min({gain},{f})"
 filters.append(
     f"[1:a]atrim=0:{duration:.2f},asetpts=PTS-STARTPTS,"
-    f"volume=0.8,volume=enable='{mute}':volume=0[theme]"
+    f"volume='{THEME_VOL}*({gain})':eval=frame,"
+    f"afade=t=in:d=1,afade=t=out:st={max(duration-2,0):.2f}:d=2[theme]"
 )
 mix.append("[theme]")
-# Native audio on each solo scene.
+# Native audio on each solo scene, gently faded at both ends.
 for k, (s, e, node) in enumerate(solos):
     clip = Path(run) / manifest["nodes"][node]["file"]
     inputs += ["-i", str(clip)]
     d = e - s
     ms = int(s * 1000)
     filters.append(
-        f"[{2+k}:a]atrim=0:{d:.2f},asetpts=PTS-STARTPTS,"
-        f"afade=t=out:st={max(d-0.4,0):.2f}:d=0.4,adelay={ms}|{ms}[solo{k}]"
+        f"[{2+k}:a]atrim=0:{d:.2f},asetpts=PTS-STARTPTS,afade=t=in:d=0.3,"
+        f"afade=t=out:st={max(d-0.5,0):.2f}:d=0.5,adelay={ms}|{ms}[solo{k}]"
     )
     mix.append(f"[solo{k}]")
 filters.append(f"{''.join(mix)}amix=inputs={len(mix)}:duration=first:normalize=0[a]")
