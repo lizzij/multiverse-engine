@@ -92,6 +92,37 @@ def test_pool_prefers_low_priority_number():
     assert order.index("p0") < order.index("p1")
 
 
+def test_story_path_and_leaves():
+    from multiverse.compose.export import leaf_nodes, story_path
+
+    manifest = {
+        "depth": 2, "branches": 2,
+        "cycles": [
+            {"root": "0", "dive_to": "0.1.2"},
+            {"root": "0.1.2", "dive_to": "0.1.2.2.1"},
+        ],
+        "nodes": {
+            nid: {"status": "ready", "parent": None}
+            for nid in ["0", "0.1", "0.2", "0.1.1", "0.1.2", "0.2.1", "0.2.2",
+                        "0.1.2.1", "0.1.2.2", "0.1.2.1.1", "0.1.2.1.2",
+                        "0.1.2.2.1", "0.1.2.2.2"]
+        },
+    }
+    assert story_path(manifest) == ["0", "0.1", "0.1.2", "0.1.2.2", "0.1.2.2.1"]
+    assert leaf_nodes(manifest, 0) == ["0.1.1", "0.1.2", "0.2.1", "0.2.2"]
+    assert leaf_nodes(manifest, 1) == ["0.1.2.1.1", "0.1.2.1.2", "0.1.2.2.1", "0.1.2.2.2"]
+
+
+def test_scene_summary_sidecar(tmp_path):
+    from multiverse.realtime.live import DEFAULT_SCENE_SUMMARY, scene_summary_for
+
+    seed = tmp_path / "seed.mp4"
+    seed.touch()
+    assert scene_summary_for(seed) == DEFAULT_SCENE_SUMMARY
+    seed.with_suffix(".summary.txt").write_text("custom style\n")
+    assert scene_summary_for(seed) == "custom style"
+
+
 def test_pool_surfaces_failures():
     def bad():
         raise RuntimeError("boom")

@@ -6,7 +6,9 @@
 - Audio is muxed afterwards: solo (fullscreen) segments carry the
   scene's native audio; grid segments carry a soundtrack (looped).
 
-Usage: uv run python scripts/record_launch.py <run_dir> [out.mp4] [soundtrack]
+Usage: uv run python scripts/record_launch.py <run_dir> [out.mp4] [soundtrack] [--hero]
+  soundtrack: optional music file for grid sections (omit for scene audio only)
+  --hero:     also produce a ~13s square 1.8x hero cut without the panel
 Requires scripts/serve.py running on :8642.
 """
 
@@ -22,11 +24,16 @@ from playwright.sync_api import sync_playwright
 
 TRIM = 0.8  # seconds cut from the head of the capture
 
-run = sys.argv[1].rstrip("/")
-out = (Path(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2]
+args = [a for a in sys.argv[1:] if a != "--hero"]
+HERO = "--hero" in sys.argv
+run = args[0].rstrip("/")
+out = (Path(args[1]) if len(args) > 1 and args[1]
        else Path(run) / f"launch-{time.strftime('%H%M%S')}.mp4")  # unique: never clobber an open preview
-soundtrack = Path(sys.argv[3]) if len(sys.argv) > 3 else Path("runs/assets-local/rick-theme.m4a")
-url = f"http://localhost:8642/web/player.html?run={run}&rec=1"
+soundtrack = Path(args[2]) if len(args) > 2 else None
+if soundtrack and not soundtrack.exists():
+    print(f"soundtrack {soundtrack} not found — proceeding without music")
+    soundtrack = None
+url = f"http://localhost:8642/web/player.html?run={run}&rec=1" + ("&panel=0" if HERO else "")
 manifest = json.loads((Path(run) / "manifest.json").read_text())
 
 with sync_playwright() as p:
@@ -80,22 +87,26 @@ duration = float(subprocess.run(
 THEME_VOL = 0.35   # keep the music a bed, not a lead
 RAMP = 1.5         # seconds of fade in/out around each solo
 
-inputs = ["-ss", str(TRIM), "-i", str(webm), "-stream_loop", "-1", "-i", str(soundtrack)]
+inputs = ["-ss", str(TRIM), "-i", str(webm)]
 filters, mix = [], []
-# Theme under the grids: smooth ramps around each solo (0 inside a solo,
-# linear ramp over RAMP seconds on either side, full volume elsewhere).
-factors = [
-    f"clip(max(({s:.2f}-t)/{RAMP},(t-{e:.2f})/{RAMP}),0,1)" for s, e, _ in solos
-] or ["1"]
-gain = factors[0]
-for f in factors[1:]:
-    gain = f"min({gain},{f})"
-filters.append(
-    f"[1:a]atrim=0:{duration:.2f},asetpts=PTS-STARTPTS,"
-    f"volume='{THEME_VOL}*({gain})':eval=frame,"
-    f"afade=t=in:d=1,afade=t=out:st={max(duration-2,0):.2f}:d=2[theme]"
-)
-mix.append("[theme]")
+audio_base = 1
+if soundtrack:
+    inputs += ["-stream_loop", "-1", "-i", str(soundtrack)]
+    audio_base = 2
+    # Theme under the grids: smooth ramps around each solo (0 inside a
+    # solo, linear ramp over RAMP seconds on either side).
+    factors = [
+        f"clip(max(({s:.2f}-t)/{RAMP},(t-{e:.2f})/{RAMP}),0,1)" for s, e, _ in solos
+    ] or ["1"]
+    gain = factors[0]
+    for f in factors[1:]:
+        gain = f"min({gain},{f})"
+    filters.append(
+        f"[1:a]atrim=0:{duration:.2f},asetpts=PTS-STARTPTS,"
+        f"volume='{THEME_VOL}*({gain})':eval=frame,"
+        f"afade=t=in:d=1,afade=t=out:st={max(duration-2,0):.2f}:d=2[theme]"
+    )
+    mix.append("[theme]")
 # Native audio on each solo scene, gently faded at both ends.
 for k, (s, e, node) in enumerate(solos):
     clip = Path(run) / manifest["nodes"][node]["file"]
@@ -103,7 +114,7 @@ for k, (s, e, node) in enumerate(solos):
     d = e - s
     ms = int(s * 1000)
     filters.append(
-        f"[{2+k}:a]atrim=0:{d:.2f},asetpts=PTS-STARTPTS,afade=t=in:d=0.3,"
+        f"[{audio_base + k}:a]atrim=0:{d:.2f},asetpts=PTS-STARTPTS,afade=t=in:d=0.3,"
         f"afade=t=out:st={max(d-0.5,0):.2f}:d=0.5,adelay={ms}|{ms}[solo{k}]"
     )
     mix.append(f"[solo{k}]")
@@ -119,3 +130,17 @@ subprocess.run(
 )
 webm.unlink(missing_ok=True)
 print(f"launch video: {out}  ({duration:.1f}s, audio muxed)")
+
+if HERO:
+    # ~13s square hero cut for the feed: 1.8x speed, center crop, muted
+    # (spec §5: works muted, autoplaying, mobile).
+    hero_out = out.with_name(out.stem + "-hero.mp4")
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-y", "-i", str(out),
+         "-vf", "setpts=PTS/1.8,crop=ih:ih,scale=1080:1080,fps=30",
+         "-t", "13", "-an",
+         "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p",
+         str(hero_out)],
+        check=True,
+    )
+    print(f"hero cut:     {hero_out}")

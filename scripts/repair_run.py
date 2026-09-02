@@ -26,6 +26,7 @@ if not summary:
     candidates = list(Path("examples").glob("*.summary.txt"))
     raise SystemExit(f"pass the seed summary file (e.g. {candidates[0] if candidates else 'examples/<seed>.summary.txt'})")
 
+run_settings = json.loads((run_dir / "manifest.json").read_text())
 failed = [n for n in tree.nodes.values() if n.status is NodeStatus.FAILED]
 print(f"{len(failed)} failed node(s)")
 for node in failed:
@@ -42,7 +43,11 @@ for node in failed:
     )
     out = run_dir / "renders" / f"{node.id}.mp4"
     print(f"→ retry [{node.id}] {node.divergence}")
-    meta = render_i2v(upload_media(frame), prompt, out, duration=5, resolution="480p", seed=43)
+    meta = render_i2v(
+        upload_media(frame), prompt, out,
+        duration=run_settings["duration"],
+        resolution=run_settings.get("resolution", "480p"), seed=43,
+    )
     node.render_path = str(out)
     node.status = NodeStatus.READY
     print(f"✓ [{node.id}] repaired ({meta['file_size_bytes'] // 1024} KB)")

@@ -105,6 +105,22 @@ End the scene holding this pose: {ending_pose}
 """
 
 
+IDENTITY_REFRESH_TEMPLATE = """\
+Video 1 is the canonical identity and art-style reference for the
+characters. Image 1 is the exact first frame; begin there and keep the
+characters exactly recognizable as in Video 1.
+
+What happens: {action}
+
+Single continuous take. No cuts.
+End the scene holding this pose: {ending_pose}
+"""
+
+
+def compile_identity_refresh_prompt(action: str, ending_pose: str) -> str:
+    return IDENTITY_REFRESH_TEMPLATE.format(action=action, ending_pose=ending_pose)
+
+
 def compile_i2v_prompt(
     style: str, action: str, premise: str, ending_pose: str, visible_consequences: list[str]
 ) -> str:

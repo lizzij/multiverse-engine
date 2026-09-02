@@ -35,3 +35,11 @@ packages = ["src/multiverse"]
 [tool.ruff]
 line-length = 100
 src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = [
+    "B008",   # typer's canonical Option(...) argument defaults
+    "BLE001", # broad catches are deliberate at supervision/error boundaries
+    "E501",   # long ffmpeg filter strings / prompts; line-length guides prose
+]

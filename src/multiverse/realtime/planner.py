@@ -137,7 +137,7 @@ def _validate_tree(beats: list[dict], depth: int) -> None:
     if len(beats) < 2:
         raise ValueError(f"expected 2 beats per node, got {len(beats)}")
     for b in beats[:2]:
-        if not REQUIRED <= set(b):
+        if not set(b) >= REQUIRED:
             raise ValueError(f"beat missing keys: {sorted(REQUIRED - set(b))}")
         if depth > 1:
             _validate_tree(b.get("children", []), depth - 1)

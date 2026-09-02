@@ -5,7 +5,7 @@ See docs/spec.md §14–§16, §49.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -49,7 +49,7 @@ class SceneSpec(BaseModel):
     mutable_dimensions: list[str] = Field(default_factory=list)
 
 
-class NodeStatus(str, Enum):
+class NodeStatus(StrEnum):
     PLANNED = "planned"
     QUEUED = "queued"
     RENDERING = "rendering"

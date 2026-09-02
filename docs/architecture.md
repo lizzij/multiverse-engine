@@ -5,7 +5,7 @@ The lasting abstraction (spec §56) — models will change, this won't:
 ```text
 SOURCE
   ↓
-SceneSpec          scene/analyzer.py — what exists, what survives, what may change
+SceneSpec          schemas.py — what exists, what survives, what may change
   ↓
 UniverseState      schemas.py — premise, divergence, world_state, consequences
   ↓
@@ -13,11 +13,11 @@ Divergence         worlds/planner.py — curated first four, then LLM planning
   ↓
 UniverseTree       worlds/tree.py — lazy, semantic, potentially unbounded
   ↓
-Materialize(node)  pipeline.py — attention-driven, cost-gated
+Materialize(node)  realtime/live.py — attention-driven, cost-gated
   ↓
 Renderer           renderers/ — protocol; h3-max is the first provider
   ↓
-Synchronize        alignment/temporal.py — shared 0.0–1.0 timeline
+Synchronize        media.py — freeze-safe anchors, normalized boundaries
   ↓
 Compose            compose/ — deterministic fracture / zoom / export
 ```

@@ -19,7 +19,7 @@ class UniverseTree(BaseModel):
     nodes: dict[str, Universe] = Field(default_factory=dict)
 
     @classmethod
-    def new(cls, root_premise: str = "original reality") -> "UniverseTree":
+    def new(cls, root_premise: str = "original reality") -> UniverseTree:
         root = Universe(id="0", premise=root_premise, depth=0, status=NodeStatus.READY)
         return cls(root="0", nodes={"0": root})
 
@@ -60,5 +60,5 @@ class UniverseTree(BaseModel):
         tmp.replace(path)
 
     @classmethod
-    def load(cls, path: Path) -> "UniverseTree":
+    def load(cls, path: Path) -> UniverseTree:
         return cls.model_validate(json.loads(path.read_text()))

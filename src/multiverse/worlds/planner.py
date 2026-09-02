@@ -27,9 +27,20 @@ def plan_first_four(tree: UniverseTree, scene: SceneSpec) -> list[Universe]:
     ]
 
 
-def plan_children(tree: UniverseTree, node_id: str, scene: SceneSpec, n: int = 4) -> list[Universe]:
-    """Plan n children for an arbitrary node: parent state + one divergence each.
+def plan_children(
+    tree: UniverseTree, node_id: str, scene: SceneSpec, n: int = 4
+) -> list[Universe]:
+    """Plan n children for a node via the LLM beat planner and attach them."""
+    from multiverse.realtime.planner import plan_beats
 
-    V0 stub — will call the scene/world LLM planner. Raises until implemented.
-    """
-    raise NotImplementedError("LLM divergence planning lands in Phase 2 (see ROADMAP.md)")
+    beats = plan_beats(tree.ancestry(node_id), scene.summary, n)
+    return [
+        tree.add_child(
+            node_id,
+            premise=b["premise"],
+            divergence=b["divergence"],
+            world_state={"action": b["action"], "ending_pose": b["ending_pose"]},
+            visible_consequences=b["visible_consequences"],
+        )
+        for b in beats[:n]
+    ]

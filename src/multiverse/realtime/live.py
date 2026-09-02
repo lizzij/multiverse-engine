@@ -17,9 +17,11 @@ The engine writes manifest.json on every state change; the web player
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import random
 import shutil
+import signal
 import time
 from datetime import datetime
 from pathlib import Path
@@ -28,9 +30,32 @@ from multiverse.media import downscale, extract_anchor_frame
 from multiverse.realtime.planner import plan_beats, plan_tree
 from multiverse.realtime.scheduler import RenderPool
 from multiverse.renderers.h3_max import render_i2v, render_reference, upload_media
-from multiverse.scene.prompts import compile_i2v_prompt
+from multiverse.scene.prompts import compile_i2v_prompt, compile_identity_refresh_prompt
 from multiverse.schemas import NodeStatus, Universe
 from multiverse.worlds.tree import UniverseTree
+
+DEFAULT_SCENE_SUMMARY = (
+    "A cynical elderly mad scientist with spiky pale blue hair and a white "
+    "lab coat and his anxious teenage grandson in a yellow t-shirt, in a "
+    "cluttered suburban living room during an unstable-time event. 2D adult "
+    "animation, flat cel-shading, thick outlines, static medium-wide shot."
+)
+
+MAX_CONSECUTIVE_FAILURES = 6  # circuit breaker: stop burning money on a broken provider
+RENDER_DEADLINE = 180         # seconds before a wedged render becomes FAILED
+RENDER_RETRIES = 1            # one retry (with jittered backoff) before FAILED
+
+
+def scene_summary_for(seed_path: Path) -> str:
+    """The seed's identity/style line: `<seed>.summary.txt` sidecar or default."""
+    sidecar = seed_path.with_suffix(".summary.txt")
+    if sidecar.exists():
+        return sidecar.read_text().strip()
+    return DEFAULT_SCENE_SUMMARY
+
+
+class EngineAborted(RuntimeError):
+    """Raised by the circuit breaker: too many consecutive render failures."""
 
 
 class LiveEngine:
@@ -38,16 +63,17 @@ class LiveEngine:
         self,
         seed_path: Path,
         run_dir: Path,
-        scene_summary: str,
+        scene_summary: str | None = None,
         cycles: int = 2,
         depth: int = 3,
         branches: int = 2,
         duration: int = 5,
         resolution: str = "480p",
         concurrency: int = 10,
+        start_root: str = "0",
     ):
         self.run_dir = run_dir
-        self.scene_summary = scene_summary
+        self.scene_summary = scene_summary or scene_summary_for(seed_path)
         self.cycles = cycles
         self.depth = depth
         self.branches = branches
@@ -55,18 +81,43 @@ class LiveEngine:
         self.resolution = resolution
         self.pool = RenderPool(concurrency)
         self.hint = run_dir.name  # fal runner session affinity for the stream
-        self.tree = UniverseTree.new()
+        self.start_root = start_root
         self.cycle_log: list[dict] = []
+        self._consecutive_failures = 0
+        self._stopping = False
         self.t0 = time.monotonic()
+
+        # Checkpoint/resume: tree.json is the durable journal. An existing
+        # run resumes (branch-the-winner, crash recovery); renders already
+        # on disk are reused idempotently.
+        if (run_dir / "tree.json").exists():
+            self.tree = UniverseTree.load(run_dir / "tree.json")
+            try:
+                self.cycle_log = json.loads(
+                    (run_dir / "manifest.json").read_text()
+                ).get("cycles", [])
+            except (ValueError, OSError):
+                self.cycle_log = []
+        else:
+            self.tree = UniverseTree.new()
 
         (run_dir / "renders").mkdir(parents=True, exist_ok=True)
         (run_dir / "anchors").mkdir(exist_ok=True)
         self.source_seed_path = seed_path
         seed_local = run_dir / "renders" / "0.mp4"
-        shutil.copy(seed_path, seed_local)
+        if not seed_local.exists():
+            shutil.copy(seed_path, seed_local)
         root = self.tree.nodes["0"]
         root.render_path = str(seed_local)
         root.status = NodeStatus.READY
+
+    # ---------- observability ----------
+
+    def _event(self, kind: str, **fields) -> None:
+        """Append one structured event to the run's journal (events.jsonl)."""
+        record = {"t": round(time.monotonic() - self.t0, 2), "event": kind, **fields}
+        with open(self.run_dir / "events.jsonl", "a") as f:
+            f.write(json.dumps(record) + "\n")
 
     def _log(self, msg: str) -> None:
         print(f"[{time.monotonic() - self.t0:6.1f}s] {msg}", flush=True)
@@ -76,6 +127,7 @@ class LiveEngine:
         manifest = {
             "generated_at": datetime.now().isoformat(timespec="seconds"),
             "duration": self.duration,
+            "resolution": self.resolution,
             "depth": self.depth,
             "branches": self.branches,
             "cycles": self.cycle_log,
@@ -93,31 +145,45 @@ class LiveEngine:
         tmp.write_text(json.dumps(manifest, indent=2))
         tmp.replace(self.run_dir / "manifest.json")
 
+    def _request_stop(self) -> None:
+        if not self._stopping:
+            self._stopping = True
+            self._log("stop requested — draining in-flight renders, then checkpointing")
+
     async def run(self) -> None:
+        # Graceful drain on Ctrl+C: finish in-flight work, write final
+        # state, exit cleanly (second Ctrl+C force-kills as usual).
+        loop = asyncio.get_running_loop()
+        with contextlib.suppress(NotImplementedError, ValueError):
+            loop.add_signal_handler(signal.SIGINT, self._request_stop)
+
         self._log("preparing identity anchor ...")
-        identity_small = downscale(
-            Path(self.tree.nodes["0"].render_path), 480,
+        identity_small = await asyncio.to_thread(
+            downscale, Path(self.tree.nodes["0"].render_path), 480,
             self.run_dir / "anchors" / "identity_480.mp4",
         )
         self.identity_url = await asyncio.to_thread(upload_media, identity_small)
 
-        root_id = "0"
+        root_id = self.start_root
         next_beats: list[dict] | None = None
         for cycle in range(self.cycles):
+            if self._stopping:
+                break
             entry = {"root": root_id, "dive_to": None}
             self.cycle_log.append(entry)
             self._write_state()
             self._log(f"=== cycle {cycle}: root [{root_id}] ===")
 
+            self._event("cycle_start", cycle=cycle, root=root_id)
             if next_beats is None:
-                beats = self._load_seed_storyboard() if cycle == 0 else None
+                beats = self._load_seed_storyboard() if cycle == 0 and root_id == "0" else None
                 if beats is None:
                     self._log(f"storyboarding cycle of [{root_id}] ...")
                     beats = await asyncio.to_thread(
                         plan_tree, self.tree.ancestry(root_id), self.scene_summary, self.depth
                     )
                     self._log("storyboard ready")
-                    if cycle == 0:
+                    if cycle == 0 and root_id == "0":
                         self._save_seed_storyboard(beats)
                 else:
                     self._log("storyboard ready (cached at seed)")
@@ -179,7 +245,8 @@ class LiveEngine:
             entry["dive_to"] = chosen.id
             self._write_state()
             self._log(f"◎ dive -> [{chosen.id}] {chosen.premise[:60]}")
-            if cycle + 1 < self.cycles:
+            self._event("dive", target=chosen.id, cycle=cycle)
+            if cycle + 1 < self.cycles and not self._stopping:
                 await self._identity_refresh(chosen)
             try:
                 next_beats = await next_task if next_task else None
@@ -187,8 +254,12 @@ class LiveEngine:
                 self._log(f"next-cycle storyboard failed ({exc}); will replan")
                 next_beats = None
             root_id = chosen.id
+        self._write_state()
+        self._event("done", ok=self.pool.completed, failed=self.pool.failed,
+                    stopped=self._stopping)
         self._log(
             f"done: {self.pool.completed} renders ok, {self.pool.failed} failed"
+            + (" (stopped early)" if self._stopping else "")
         )
 
     async def expand_cycle(self, root_id: str, cycle_beats: list[dict]) -> list[Universe]:
@@ -240,24 +311,21 @@ class LiveEngine:
                     beat["ending_pose"], beat["visible_consequences"],
                 )
                 out = self.run_dir / "renders" / f"{child.id}.mp4"
-                self._log(f"→ submit [{child.id}] {beat['divergence']}")
-                try:
-                    # Deadline: a wedged fal request must become FAILED,
-                    # not a forever-stall of the whole cycle.
-                    _, took = await asyncio.wait_for(self.pool.run(lambda: render_i2v(
-                        frame_url, prompt, out,
-                        duration=self.duration, resolution=self.resolution,
-                        seed=42, hint=self.hint,
-                    )), timeout=180)
-                except Exception as exc:
-                    child.status = NodeStatus.FAILED
-                    self._write_state()
-                    self._log(f"✗ [{child.id}] failed: {exc}")
-                    return
+                # Idempotent resume: a render already on disk is reused,
+                # never re-billed.
+                if not out.exists():
+                    if self._stopping:
+                        child.status = NodeStatus.PLANNED
+                        self._write_state()
+                        return
+                    self._log(f"→ submit [{child.id}] {beat['divergence']}")
+                    if not await self._render_with_retry(child, frame_url, prompt, out):
+                        return
+                else:
+                    self._log(f"✓ [{child.id}] reused from disk")
                 child.render_path = str(out)
                 child.status = NodeStatus.READY
                 self._write_state()
-                self._log(f"✓ [{child.id}] ready ({took:.0f}s)")
                 # Eager: descend the moment this child's pixels exist.
                 await expand(child, d + 1, beat.get("children", []))
 
@@ -265,6 +333,44 @@ class LiveEngine:
 
         await expand(root, 0, cycle_beats)
         return leaves
+
+    async def _render_with_retry(
+        self, child: Universe, frame_url: str, prompt: str, out: Path
+    ) -> bool:
+        """One render with deadline, jittered retry, and circuit breaking.
+
+        Returns True on success; marks the node FAILED and returns False
+        otherwise. Trips EngineAborted after MAX_CONSECUTIVE_FAILURES so a
+        broken provider can't silently burn the account.
+        """
+        last: Exception | None = None
+        for attempt in range(RENDER_RETRIES + 1):
+            try:
+                _, took = await asyncio.wait_for(self.pool.run(lambda: render_i2v(
+                    frame_url, prompt, out,
+                    duration=self.duration, resolution=self.resolution,
+                    seed=42, hint=self.hint,
+                )), timeout=RENDER_DEADLINE)
+                self._consecutive_failures = 0
+                self._log(f"✓ [{child.id}] ready ({took:.0f}s)")
+                self._event("render_ok", node=child.id, seconds=round(took))
+                return True
+            except Exception as exc:
+                last = exc
+                if attempt < RENDER_RETRIES and not self._stopping:
+                    delay = 2 + random.uniform(0, 2)
+                    self._log(f"↻ [{child.id}] retrying in {delay:.0f}s: {exc}")
+                    await asyncio.sleep(delay)
+        child.status = NodeStatus.FAILED
+        self._write_state()
+        self._consecutive_failures += 1
+        self._log(f"✗ [{child.id}] failed: {last}")
+        self._event("render_failed", node=child.id, error=str(last)[:200])
+        if self._consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+            raise EngineAborted(
+                f"{self._consecutive_failures} consecutive render failures — aborting stream"
+            )
+        return False
 
     def _read_control(self) -> str | None:
         """Consume a viewer dive request written by scripts/serve.py."""
@@ -311,25 +417,30 @@ class LiveEngine:
             Path(parent.render_path), self.run_dir / "anchors" / f"{leaf.id}_refresh_src.png",
         )
         frame_url = await asyncio.to_thread(upload_media, frame)
-        prompt = (
-            "Video 1 is the canonical identity and art-style reference for "
-            "the characters. Image 1 is the exact first frame; begin there "
-            "and keep the characters exactly recognizable as in Video 1.\n\n"
-            f"What happens: {leaf.world_state.get('action', leaf.premise)}\n\n"
-            "Single continuous take. No cuts. "
-            f"End the scene holding this pose: {leaf.world_state.get('ending_pose', 'a held tableau')}"
+        prompt = compile_identity_refresh_prompt(
+            leaf.world_state.get("action", leaf.premise),
+            leaf.world_state.get("ending_pose", "a held tableau"),
         )
         out = self.run_dir / "renders" / f"{leaf.id}.mp4"
         self._log(f"↺ identity refresh [{leaf.id}] (r2v, low priority)")
         try:
-            _, took = await self.pool.run(lambda: render_reference(
+            _, took = await asyncio.wait_for(self.pool.run(lambda: render_reference(
                 [self.identity_url], prompt, out,
                 duration=self.duration, resolution=self.resolution,
                 aspect_ratio="16:9", seed=42, image_urls=[frame_url],
-            ), priority=2)
+            ), priority=2), timeout=RENDER_DEADLINE)
             self._log(f"↺ refreshed [{leaf.id}] ({took:.0f}s)")
+            self._event("identity_refresh", node=leaf.id, seconds=round(took))
         except Exception as exc:
             self._log(f"↺ refresh failed, keeping I2V render: {exc}")
 
-def run_live(seed_path: Path, run_dir: Path, scene_summary: str, **kwargs) -> None:
-    asyncio.run(LiveEngine(seed_path, run_dir, scene_summary, **kwargs).run())
+
+def run_live(
+    seed_path: Path, run_dir: Path, scene_summary: str | None = None, **kwargs
+) -> LiveEngine:
+    engine = LiveEngine(seed_path, run_dir, scene_summary, **kwargs)
+    try:
+        asyncio.run(engine.run())
+    except EngineAborted as exc:
+        print(f"aborted: {exc} — state checkpointed; resume with the same run dir")
+    return engine

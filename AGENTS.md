@@ -11,7 +11,7 @@ SOURCE → SceneSpec → UniverseTree → Materialize(node) → Renderer → Syn
 ```
 
 - `src/multiverse/schemas.py` — SceneSpec, Universe, tree/run models.
-- `src/multiverse/scene/` — prompt compilers (+ analyzer stub).
+- `src/multiverse/scene/` — prompt compilers.
 - `src/multiverse/worlds/` — divergence planning + the lazy UniverseTree.
 - `src/multiverse/media.py` — ffmpeg helpers: freeze-safe anchors,
   crossfade concat, downscale.
@@ -22,9 +22,8 @@ SOURCE → SceneSpec → UniverseTree → Materialize(node) → Renderer → Syn
 - `src/multiverse/renderers/` — provider adapters behind a small
   protocol. `h3_max.py` is the default; `h3_local.py` (vLLM-Omni,
   experimental). Providers must stay cleanly separated from core.
-- `src/multiverse/alignment/`, `src/multiverse/compose/` — temporal
-  normalization and offline compositing (partly stubs; the live player
-  does fracture/zoom presentation today).
+- `src/multiverse/compose/export.py` — social exports (story film,
+  participate grid); the live player does fracture/zoom presentation.
 - `web/player.html` — the fracture player (manifest-driven).
 - `scripts/` — user-facing entry points; `experiments/` — dev spikes,
   not maintained.

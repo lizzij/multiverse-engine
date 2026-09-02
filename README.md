@@ -70,8 +70,8 @@ committed examples) — without it a generic default is used.
 **2. Go live** — two terminals:
 
 ```bash
-uv run python scripts/serve.py                       # player + control channel :8642
-uv run python scripts/live_stream.py examples/my-seed.mp4 3   # 3 dive cycles
+uv run python scripts/serve.py                    # player + control channel :8642
+uv run multiverse live examples/my-seed.mp4 --cycles 3
 ```
 
 Open the player URL it prints. The seed plays fullscreen and loops with
@@ -85,8 +85,9 @@ tight, loop-free launch video with scene audio and an optional
 soundtrack bed:
 
 ```bash
-uv run python scripts/record_launch.py runs/<run-dir> "" path/to/music.m4a
-uv run python scripts/export_timeline.py runs/<run-dir>   # or: the story path as one continuous film
+uv run multiverse export runs/<run-dir> --preset story        # the story path, one continuous film
+uv run multiverse export runs/<run-dir> --preset participate  # numbered grid + "reply N" end card
+uv run python scripts/record_launch.py runs/<run-dir> "" music.m4a --hero   # player capture + 13s square hero cut
 ```
 
 ### Ready-made example
@@ -99,7 +100,7 @@ committed; you generate it):
 uv run multiverse seed "$(cat examples/seed-rickle.prompt.txt)" \
   --duration 8 --seed 42 --out examples/seed-rickle.mp4
 uv run python scripts/serve.py &
-uv run python scripts/live_stream.py examples/seed-rickle.mp4 2
+uv run multiverse live examples/seed-rickle.mp4 --cycles 2
 ```
 
 A committed `<seed>.storyboard.json` is used for the first cycle
@@ -161,11 +162,13 @@ becoming a child's anchor.
 
 | | |
 |---|---|
-| `multiverse doctor` / `seed` | env check; text-to-video seed generation (`--json` for agents) |
-| `scripts/live_stream.py` | the live engine: storyboard → concurrent renders → dive cycles |
+| `multiverse doctor` / `seed` | env check; text-to-video seed generation |
+| `multiverse live` / `generate` | the live engine: storyboard → concurrent renders → dive cycles (resumable via `--run-dir`) |
+| `multiverse branch RUN --node N` | continue any run from a chosen universe (branch-the-winner) |
+| `multiverse status` / `inspect` / `export` | run state, universe tree, story/participate exports |
+| every command | deterministic `--json` mode for agents |
 | `scripts/serve.py` + `web/player.html` | the fracture player: shimmer holds, click-to-dive, sound, live status panel |
-| `scripts/record_launch.py` | loop-free launch films with muxed scene audio + soundtrack |
-| `scripts/export_timeline.py` | the committed story path as one crossfaded film |
+| `scripts/record_launch.py` | loop-free launch films (+ `--hero` for a 13s square feed cut) |
 | `scripts/repair_run.py` | retry individual failed worlds in a finished run |
 | `src/multiverse/realtime/` | planner, render pool, live engine, RTMP playout |
 | `src/multiverse/renderers/` | H3 Max adapter + experimental local (vLLM-Omni FL2VA) behind one protocol |
@@ -181,6 +184,7 @@ never in files or logs.
 - [docs/spec.md](docs/spec.md) — the original V0 launch specification
 - [docs/realtime-branching.md](docs/realtime-branching.md) — the live-mode design
 - [docs/realtime-optimization.md](docs/realtime-optimization.md) — measured latencies and how real-time was reached
+- [docs/engineering.md](docs/engineering.md) — the async/distributed practices behind the live engine
 - [docs/architecture.md](docs/architecture.md) · [docs/universe-tree.md](docs/universe-tree.md) · [docs/ecosystem.md](docs/ecosystem.md)
 - [ROADMAP.md](ROADMAP.md) — what's done, what's next
 

@@ -14,7 +14,6 @@ import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-
 ALLOWED_PREFIXES = ("/web/", "/runs/")
 
 

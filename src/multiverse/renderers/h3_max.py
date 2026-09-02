@@ -243,6 +243,5 @@ def _download(url: str, out_path: Path) -> None:
     with httpx.stream("GET", url, timeout=120, follow_redirects=True) as response:
         response.raise_for_status()
         with open(tmp, "wb") as f:
-            for chunk in response.iter_bytes():
-                f.write(chunk)
+            f.writelines(response.iter_bytes())
     tmp.replace(out_path)

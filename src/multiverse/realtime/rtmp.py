@@ -19,6 +19,8 @@ import sys
 import time
 from pathlib import Path
 
+from multiverse.compose.export import story_path as _story_path
+
 SEGMENT_ARGS = [
     "-vf", "scale=1280:720:force_original_aspect_ratio=decrease,"
            "pad=1280:720:(ow-iw)/2:(oh-ih)/2,fps=30",
@@ -58,19 +60,6 @@ def _manifest(run_dir: Path) -> dict | None:
         return json.loads((run_dir / "manifest.json").read_text())
     except (ValueError, OSError):
         return None
-
-
-def _story_path(m: dict) -> list[str]:
-    """The engine's committed linear story: each cycle's root → dive target."""
-    ids: list[str] = []
-    for cyc in m["cycles"]:
-        root, dive = cyc["root"], cyc.get("dive_to")
-        if not ids or ids[-1] != root:
-            ids.append(root)
-        if dive and dive.startswith(root + "."):
-            rel = dive[len(root) + 1 :].split(".")
-            ids.extend(root + "." + ".".join(rel[:i + 1]) for i in range(len(rel)))
-    return ids
 
 
 def stream(run_dir: Path, rtmp_url: str, max_scenes: int = 0, max_holds: int = 30) -> None:

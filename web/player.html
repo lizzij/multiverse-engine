@@ -109,7 +109,12 @@ const flash = document.getElementById('flash');
 const hud = document.getElementById('hud');
 const panel = document.getElementById('panel');
 
-document.body.classList.add('panel-open');
+if (params.get('panel') === '0'){          // hero recording: clean frame
+  panel.classList.add('hidden');
+  document.getElementById('paneltoggle').hidden = true;
+} else {
+  document.body.classList.add('panel-open');
+}
 document.getElementById('paneltoggle').onclick = e => {
   panel.classList.toggle('hidden');
   document.body.classList.toggle('panel-open', !panel.classList.contains('hidden'));
