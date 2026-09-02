@@ -1,0 +1,180 @@
+{
+  "depth": 3,
+  "branches": 2,
+  "beats": [
+    {
+      "divergence": "machine_blooms",
+      "premise": "The machine's violent spark transforms into a cascade of gentle, luminescent particles.",
+      "action": "The violet spark expands outward in a flood of glowing wisps that swirl around the workshop like slow-motion fireflies. The tinkerer's eyes go wide with wonder. The apprentice lowers their hands as particles dance around them both, casting soft light across every surface.",
+      "ending_pose": "Both characters standing with arms lowered or outstretched, surrounded by floating luminescent particles drifting lazily through the barn.",
+      "visible_consequences": [
+        "Hundreds of glowing particles suspended in air, each trailing soft violet light",
+        "Dust motes becoming luminous, caught in the particle cascade",
+        "Characters' faces and aprons lit from below by the gentle glow"
+      ],
+      "children": [
+        {
+          "divergence": "particles_form_portal",
+          "premise": "The swirling particles coalesce into a shimmering doorway to somewhere unknown.",
+          "action": "The luminescent particles orbit faster, drawing into the shape of an archway. The glow intensifies, creating a luminous frame. The tinkerer steps closer, her hand rising toward the threshold. The apprentice follows close behind, both drawn forward by curiosity.",
+          "ending_pose": "Tinkerer's hand hovering inches from the luminous archway, apprentice standing at her shoulder, both frozen at the threshold.",
+          "visible_consequences": [
+            "Particles forming a stable arch shape with a hollow center glowing violet",
+            "New shadows cast by the portal light creating strange geometries on workshop walls",
+            "Portal glow reflected in both characters' eyes"
+          ],
+          "children": [
+            {
+              "divergence": "tinkerer_crosses_alone",
+              "premise": "The tinkerer reaches through the portal despite her apprentice's instinctive fear.",
+              "action": "The tinkerer takes a breath and reaches her hand through the archway. Her arm vanishes past the elbow into golden light. The apprentice gasps and grabs her sleeve with both hands, pulling gently backward. The portal flares brighter.",
+              "ending_pose": "Tinkerer's arm extended through the luminous archway (disappearing at the elbow), apprentice gripping her sleeve with both hands, both frozen mid-action.",
+              "visible_consequences": [
+                "Tinkerer's arm vanishing into golden light, creating an optical illusion of absence",
+                "Apprentice's white-knuckled grip straining her sleeve",
+                "Portal arch flaring brighter as if responding to the crossing"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "fear_halts_passage",
+              "premise": "Both characters step back from the unknown threshold, caution overcoming curiosity.",
+              "action": "The tinkerer's hand trembles as she holds it before the archway. The apprentice reaches up and gently pulls her sleeve, shaking their head. They exchange a worried look\u2014one of mutual understanding. Both turn slightly away from the portal.",
+              "ending_pose": "Both standing at cautious distance from the portal, tinkerer's hand raised uncertainly, apprentice's hand on her shoulder, both facing slightly away.",
+              "visible_consequences": [
+                "Clear space widening between characters and portal",
+                "Uncertain, protective postures from both figures",
+                "Portal dimming slightly as if disappointed by their withdrawal"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "divergence": "particles_reflow_inward",
+          "premise": "The particles reverse course and flow back into the machine, healing it completely.",
+          "action": "The luminescent particles suddenly reverse trajectory, flowing upward and inward like a reverse waterfall. They stream back into the machine's interior through every seam. The machine's hum shifts from chaotic to steady and musical. The tinkerer relaxes and exchanges a relieved glance with the apprentice.",
+          "ending_pose": "Both standing before the healed machine, unified in relief, watching it emit a steady, warm violet glow.",
+          "visible_consequences": [
+            "Particles flowing inward in reverse trails of light",
+            "Machine's exterior knitting whole again before their eyes",
+            "Workshop bathed in calm, steady violet light instead of chaotic sparks"
+          ],
+          "children": [
+            {
+              "divergence": "machine_reveals_purpose",
+              "premise": "The healed machine powers on and its true function becomes visible.",
+              "action": "The machine's hum shifts into a clear, musical note. Copper panels glow from within. Intricate gears inside become visible through transparent panels, turning in precise, complex patterns. The tinkerer's face breaks into a smile of recognition\u2014she knows exactly what she has built.",
+              "ending_pose": "Both standing before the now-animated machine, tinkerer's face illuminated with pride, apprentice's expression mirroring wonder.",
+              "visible_consequences": [
+                "Visible gears moving in synchronized, intricate patterns behind glass",
+                "Musical hum filling the barn in pleasing harmony",
+                "Tinkerer's face glowing with satisfaction and pride"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "machine_remains_mysterious",
+              "premise": "The machine stabilizes but remains enigmatic, its purpose unknown.",
+              "action": "The machine's glow fades from brilliant to a subtle, rhythmic pulse. The hum reduces to a quiet throb. The tinkerer frowns and bends over the control dials, studying gauges. The apprentice reaches out tentatively, then hesitates. The workshop falls quiet.",
+              "ending_pose": "Tinkerer bent over examining dials, apprentice's hand hovering uncertainly near the machine, both in contemplation.",
+              "visible_consequences": [
+                "Dimmed glow creating shifting shadows across their faces",
+                "Machine inert but alive, pulsing with unknown purpose",
+                "Workshop returned to natural lantern light, emphasizing the mystery"
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "divergence": "machine_fractures_violently",
+      "premise": "The machine's copper casing shatters, releasing crystalline fragments and forcing both characters into reactive panic.",
+      "action": "The machine's exterior cracks with a sharp, crystalline sound. Copper panels buckle. Glowing shards and crystalline fragments cascade downward like a waterfall of light. The apprentice stumbles backward, arms windmilling for balance. The tinkerer lunges forward instinctively, reaching to catch or stabilize the cascade.",
+      "ending_pose": "Tinkerer reaching toward the spilling fragments with both hands, apprentice mid-stumble with arms outstretched for balance, both caught in reactive motion.",
+      "visible_consequences": [
+        "Crystalline shards and copper pieces suspended in the arc of their fall",
+        "Machine's interior exposed and glowing, cracks spreading across its casing",
+        "Tinkerer and apprentice in dynamic, opposing poses of instinct and fear"
+      ],
+      "children": [
+        {
+          "divergence": "shards_reverse_upward",
+          "premise": "The scattered shards defy gravity and reverse course, reassembling themselves impossibly.",
+          "action": "The falling shards freeze mid-air for a moment of impossible suspension. Then they reverse course, flowing upward like a video played backward. They chime and click as they fit back into the machine's casing. The copper panels knit themselves whole. The apprentice stops mid-stumble, mouth hanging open. The tinkerer freezes, arm outstretched, watching the impossible unfold.",
+          "ending_pose": "Apprentice frozen mid-motion with arms spread, mouth open in astonishment; tinkerer frozen mid-lunge, watching the impossible reassembly.",
+          "visible_consequences": [
+            "Shards suspended in mid-air in perfectly geometric patterns",
+            "Light trails showing reverse motion as fragments flow upward",
+            "Machine casing visibly knitting back together in smooth, impossible repair"
+          ],
+          "children": [
+            {
+              "divergence": "timeline_resets",
+              "premise": "The machine reassembles so completely that it resets to the moment before the fracture ever occurred.",
+              "action": "The last shards click back into place with crystalline precision. The machine hums to life. The violet spark ignites again at its center, exactly as before. Both characters blink slowly, disoriented. The machine looks pristine, unchanged\u2014as if the fracture never happened. They exchange confused looks.",
+              "ending_pose": "Both standing in the original pose of wonder and alarm, machine rebuilt and sparking identically, both expressions showing disorientation.",
+              "visible_consequences": [
+                "Machine restored to pre-fracture state with pristine copper and glowing center",
+                "Violet spark reignited in the exact same pattern as the beginning",
+                "Confused, dazed expressions from both characters as if waking from a dream"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "reconstruction_frozen_midway",
+              "premise": "The shards reassemble partway, then freeze in mid-air, suspended in beautiful, broken geometry.",
+              "action": "The shards rise and reform, faster and faster. Then, halfway through reconstruction, they stop completely\u2014suspended in an intricate lattice. The machine's interior is now exposed and beautifully visible, its symmetrical mechanisms hanging in perfect stillness. The tinkerer and apprentice stare upward, their fear transforming to awe.",
+              "ending_pose": "Both looking upward at the suspended crystalline lattice, necks craned, expressions shifting from fear to wonder.",
+              "visible_consequences": [
+                "Shards suspended in an intricate, symmetrical lattice pattern",
+                "Machine's interior perfectly visible, showing gears and mechanisms in artistic detail",
+                "Workshop lit from below by exposed crystalline surfaces, creating new shadows"
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "divergence": "cascade_spreads_across_floor",
+          "premise": "The cascade of shards completes its fall, covering the workshop floor in glittering debris and loss.",
+          "action": "The crystalline fragments complete their fall, spreading across the wooden floor in a glittering wave of light and sound. The apprentice skids backward through the debris, feet crunching and sliding on sharp pieces. The tinkerer grabs onto a nearby workbench, knuckles white with the force of her grip. She looks down at the destroyed machine, her expression drawn with concern.",
+          "ending_pose": "Tinkerer gripping the workbench with white knuckles, apprentice's feet planted in scattered shards with shocked expression.",
+          "visible_consequences": [
+            "Workshop floor completely covered in glittering crystalline debris",
+            "Shards reflecting lantern light in fractured, broken patterns",
+            "Tinkerer's white-knuckled grip on the workbench, skin nearly splitting"
+          ],
+          "children": [
+            {
+              "divergence": "begin_salvage_work",
+              "premise": "The tinkerer and apprentice respond by methodically gathering every piece, determined to rebuild.",
+              "action": "The tinkerer kneels slowly amid the shards and begins carefully collecting them into her apron, cradling each piece. The apprentice crouches nearby, crunching through debris with practiced care, selecting pieces by size and type. They move with practiced efficiency, as if they have salvaged from failure before. The tinkerer nods approvingly at the apprentice's systematic approach.",
+              "ending_pose": "Both crouched amid the shards, tinkerer's apron bulging with pieces, apprentice holding a careful handful, both focused on the work.",
+              "visible_consequences": [
+                "Shards gradually collecting in the tinkerer's apron, bulging with recovered material",
+                "Apprentice's careful handholds showing respect for each broken piece",
+                "Focused, methodical expressions showing resilience and determination"
+              ],
+              "children": []
+            },
+            {
+              "divergence": "accept_loss_together",
+              "premise": "The tinkerer and apprentice accept that the work is lost, grieving quietly in the wreckage.",
+              "action": "The tinkerer slowly straightens up, setting her hand on the apprentice's shoulder. They both stand upright amid the glittering wreckage, gazing down at the destroyed machine. The apprentice's face trembles slightly, tears catching the lantern light. The tinkerer's expression is quiet and sad but oddly peaceful\u2014accepting.",
+              "ending_pose": "Both standing upright amid the wreckage, tinkerer's hand on apprentice's shoulder, both looking down at the destroyed machine with expressions of quiet loss.",
+              "visible_consequences": [
+                "Widespread glittering debris across the entire barn floor",
+                "Destroyed machine casing in pieces, no longer recognizable",
+                "Tear reflecting lantern light on the apprentice's cheek, tinkerer's weathered face showing acceptance"
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
