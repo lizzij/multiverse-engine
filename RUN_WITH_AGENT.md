@@ -32,7 +32,7 @@ examples/README.md).
 
 ```bash
 uv run python scripts/serve.py &                        # player on :8642
-uv run python scripts/live_stream.py examples/<name>.mp4 <cycles>
+uv run multiverse live examples/<name>.mp4 --cycles <N> --json
 ```
 
 Give the user the player URL the engine prints. **Cost gate: each cycle
@@ -48,7 +48,7 @@ uv run python scripts/repair_run.py runs/<run> examples/<name>.summary.txt
 
 ```bash
 uv run python scripts/record_launch.py runs/<run> "" <soundtrack.m4a>  # launch film
-uv run python scripts/export_timeline.py runs/<run>                     # story path film
+uv run multiverse export runs/<run> --preset story --json               # story path film
 ```
 
 Only add soundtrack files the user supplies or approves; mind music

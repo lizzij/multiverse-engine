@@ -15,7 +15,7 @@ Generate any seed, then stream it:
 uv run multiverse seed "$(cat examples/seed-rickle.prompt.txt)" \
   --duration 8 --seed 42 --out examples/seed-rickle.mp4
 uv run python scripts/serve.py &
-uv run python scripts/live_stream.py examples/seed-rickle.mp4 2
+uv run multiverse live examples/seed-rickle.mp4 --cycles 2
 ```
 
 | seed | style | storyboard |
