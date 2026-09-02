@@ -104,13 +104,21 @@ def concat_crossfade(clips: list[Path], out: Path, fade: float = 0.25) -> Path:
     inputs: list[str] = []
     for clip in clips:
         inputs += ["-i", str(clip)]
-    parts, offset = [], 0.0
-    vprev, aprev = "0:v", "0:a"
+    # Normalize every input first: xfade requires identical geometry/fps,
+    # and runs mix resolutions (768p seed, 480p scenes).
+    parts = [
+        f"[{i}:v]scale=1280:720:force_original_aspect_ratio=decrease,"
+        f"pad=1280:720:(ow-iw)/2:(oh-ih)/2,fps=24,setpts=PTS-STARTPTS[s{i}];"
+        f"[{i}:a]aresample=44100[sa{i}]"
+        for i in range(len(clips))
+    ]
+    offset = 0.0
+    vprev, aprev = "s0", "sa0"
     for i in range(1, len(clips)):
         offset += durations[i - 1] - fade
         vout, aout = f"v{i}", f"a{i}"
-        parts.append(f"[{vprev}][{i}:v]xfade=transition=fade:duration={fade}:offset={offset:.3f}[{vout}]")
-        parts.append(f"[{aprev}][{i}:a]acrossfade=d={fade}[{aout}]")
+        parts.append(f"[{vprev}][s{i}]xfade=transition=fade:duration={fade}:offset={offset:.3f}[{vout}]")
+        parts.append(f"[{aprev}][sa{i}]acrossfade=d={fade}[{aout}]")
         vprev, aprev = vout, aout
     out.parent.mkdir(parents=True, exist_ok=True)
     _run([*inputs, "-filter_complex", ";".join(parts),

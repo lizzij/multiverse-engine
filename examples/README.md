@@ -23,6 +23,7 @@ uv run multiverse live examples/seed-rickle.mp4 --cycles 2
 | `seed-rickle` | 2D animation, time-fracture living room | LLM-planned, committed |
 | `seed-spiderverse-fall` | comic-book falling shot | LLM-planned, committed |
 | `seed-eeaao-joy` | live-action A24 warmth, mother & daughter | hand-authored canonical universes |
+| `seed-tinkers` | hand-painted gouache storybook, **fully original** — safe to publish | LLM-planned, committed |
 
 Seed guidelines: 5–8 seconds, single continuous shot, one clear subject
 and one clear action beat, static-ish camera, ending on a holdable pose
